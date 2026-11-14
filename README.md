@@ -20,6 +20,7 @@ Variáveis: `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `WHATSAPP_NUMBER
 ## Painel `/admin`
 - **Resumo**: faturamento, pedidos, ticket médio, vendas por dia, mais vendidos, pagamentos e bairros (hoje, 7 ou 30 dias; cancelados não contam).
 - **Pedidos**: aviso sonoro e contador na aba quando chega pedido novo, filtros por status, busca por nº/nome/telefone, botão para avançar o status, impressão da comanda e link do WhatsApp.
+- **Caixa**: abre com o troco inicial, aceita retiradas (sangria), despesas e entradas com motivo, e fecha comparando o dinheiro contado com o esperado (troco + vendas em dinheiro + entradas − retiradas − despesas). Mostra vendas por forma de pagamento (Dinheiro, Pix, Cartão), guarda o histórico e imprime o relatório. Só um caixa fica aberto por vez; pedidos cancelados não contam. Código em `src/caixa.js`; as tabelas `cash_sessions` e `cash_movements` são criadas sozinhas na primeira execução.
 - **Produtos** (com busca, fotos e ativar/desativar), **Marcas** e **Bairros** com taxa de entrega.
 
 ## Catálogo

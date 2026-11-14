@@ -37,6 +37,10 @@ a{color:#7ea6ff}
 .chips button{min-height:36px;padding:0 12px;border-radius:99px}.chips button.on{background:var(--amber);color:#1a1100;border:0}
 .row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
 .st-novo{border-color:var(--amber)}.st-cancelado{opacity:.5}
+.ok{color:#6be08a}.over{color:var(--amber)}.short{color:#ff8a8a}
+.result{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px;border-radius:10px;border:1px solid currentColor;margin:10px 0;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08)}th{color:var(--muted);font-weight:500}
+.tw{overflow-x:auto}.small{min-height:34px;padding:0 10px;font-size:14px}
 @media print{body *{display:none}}
 </style>
 </head>
@@ -61,12 +65,12 @@ function login(){
   $('#go').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};
 }
 function shell(){
-  $('#app').innerHTML=`<div class="tabs">${[['dash','Resumo'],['orders','Pedidos'+(newCount?' ('+newCount+')':'')],['products','Produtos'],['brands','Marcas'],['zones','Bairros']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('')}<button id="out" style="margin-left:auto">Sair</button></div><div id="body"></div>`;
+  $('#app').innerHTML=`<div class="tabs">${[['dash','Resumo'],['orders','Pedidos'+(newCount?' ('+newCount+')':'')],['products','Produtos'],['brands','Marcas'],['zones','Bairros'],['cash','Caixa']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('')}<button id="out" style="margin-left:auto">Sair</button></div><div id="body"></div>`;
   document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;shell()});
   $('#out').onclick=()=>{clearInterval(wtimer);wtimer=null;token='';sessionStorage.removeItem('bdc_admin');login()};
   clearInterval(timer);
   if(!wtimer){watch();wtimer=setInterval(watch,15000)}
-  ({dash,orders,products,brands,zones})[tab]();
+  ({dash,orders,products,brands,zones,cash})[tab]();
 }
 const ST=['novo','preparando','saiu','entregue','cancelado'];
 function beep(){try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.2;o.start();o.stop(a.currentTime+.5)}catch(e){}}
@@ -173,6 +177,93 @@ async function zones(){
   $('#body').innerHTML=`<div class="box"><b>Bairro e taxa de entrega</b><div class="grid"><input id="zn" placeholder="Bairro"><input id="zf" placeholder="Taxa (ex.: 6,00)"></div><button class="p" id="za">Salvar bairro</button><div class="err" id="e"></div><p class="muted">Se o bairro já existir, a taxa é atualizada.</p></div>`+j.zones.map(z=>`<div class="box top" style="align-items:center"><span>${esc(z.name)} — ${brl(z.fee_cents)}</span><button class="d" data-z="${z.id}">Excluir</button></div>`).join('');
   $('#za').onclick=async()=>{try{await api('zones',{method:'POST',body:JSON.stringify({name:$('#zn').value,fee:$('#zf').value})});zones()}catch(e){$('#e').textContent=e.message}};
   document.querySelectorAll('[data-z]').forEach(b=>b.onclick=async()=>{await api('zones/'+b.dataset.z,{method:'DELETE'});zones()});
+}
+
+/* ---------- Caixa ---------- */
+const KIND={suprimento:'Entrada de dinheiro',sangria:'Retirada (sangria)',despesa:'Despesa paga do caixa'};
+const METHODS=['Dinheiro','Pix','Cartão'];
+let cashLast=null;
+function toCents(t){const raw=String(t??'').trim().replace(/^R\$\s*/i,'');const n=/,/.test(raw)?raw.replace(/\./g,'').replace(',','.'):raw;
+  return /^\d+(\.\d{1,2})?$/.test(n)?Math.round(Number(n)*100):null}
+const when=d=>new Date(d).toLocaleString('pt-BR');
+const diffTxt=c=>+c===0?'Caixa batendo ✓':+c>0?'Sobrou '+brl(c):'Faltou '+brl(-c);
+const diffCls=c=>+c===0?'ok':+c>0?'over':'short';
+function cashSummary(s){
+  const rows=Object.entries(s.byMethod||{}).filter(([m,v])=>METHODS.includes(m)||v.orders>0).map(([m,v])=>`<tr><td>${esc(m)}</td><td>${v.orders}</td><td>${brl(v.totalCents)}</td></tr>`).join('');
+  return `<div class="cards"><div class="card"><span class="muted">Troco inicial</span><b>${brl(s.openingCents)}</b></div><div class="card"><span class="muted">Vendas em dinheiro</span><b>${brl(s.cashSalesCents)}</b></div><div class="card"><span class="muted">Entradas / retiradas / despesas</span><b style="font-size:16px">+${brl(s.suppliesCents)} / −${brl(s.withdrawalsCents)} / −${brl(s.expensesCents)}</b></div><div class="card" style="border-color:var(--amber)"><span class="muted">Dinheiro que deve ter no caixa</span><b>${brl(s.expectedCashCents)}</b></div></div>
+  <div class="tw"><table><thead><tr><th>Forma de pagamento</th><th>Pedidos</th><th>Total</th></tr></thead><tbody>${rows}<tr><td><b>Total vendido</b></td><td><b>${s.totalOrders}</b></td><td><b>${brl(s.totalSalesCents)}</b></td></tr></tbody></table></div>`;
+}
+function cashMoves(list,canDel){
+  if(!list.length)return '<p class="muted">Nenhum lançamento ainda.</p>';
+  return `<div class="tw"><table><thead><tr><th>Hora</th><th>Tipo</th><th>Motivo</th><th>Valor</th><th></th></tr></thead><tbody>${list.map(m=>`<tr><td>${when(m.created_at)}</td><td>${KIND[m.kind]||m.kind}</td><td>${esc(m.reason)}</td><td>${m.kind==='suprimento'?'+':'−'}${brl(m.amount_cents)}</td><td>${canDel?`<button class="d small" data-cdel="${m.id}">Desfazer</button>`:''}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function cashReport(r,title){
+  const s=r.session;
+  return `<div class="box"><b>${esc(title)}</b><p class="muted">Aberto em ${when(s.opened_at)} por ${esc(s.opened_by)}${s.closed_at?' · Fechado em '+when(s.closed_at)+' por '+esc(s.closed_by):''}</p>${cashSummary(r.summary)}
+  ${s.closed_at?`<div class="result ${diffCls(s.difference_cents)}"><span>Esperado ${brl(s.expected_cents)} · Contado ${brl(s.counted_cents)}</span><span>${diffTxt(s.difference_cents)}</span></div>${s.open_notes?`<p class="muted">Obs. na abertura: ${esc(s.open_notes)}</p>`:''}${s.close_notes?`<p class="muted">Obs. no fechamento: ${esc(s.close_notes)}</p>`:''}`:''}
+  <b>Lançamentos</b>${cashMoves(r.movements,false)}<button data-cprint="${s.id}" style="margin-top:8px">🖨️ Imprimir relatório</button></div>`;
+}
+function printCash(r){
+  const s=r.session,m=r.summary,ln=(a,b)=>`${String(a).padEnd(18)}${String(b).padStart(14)}`;
+  const meth=Object.entries(m.byMethod||{}).filter(([k,v])=>METHODS.includes(k)||v.orders>0).map(([k,v])=>ln(k+' ('+v.orders+')',brl(v.totalCents))).join('\n');
+  const mov=r.movements.map(x=>ln(KIND[x.kind]||x.kind,(x.kind==='suprimento'?'+':'-')+brl(x.amount_cents))+'\n   '+esc(x.reason)).join('\n')||'Sem lançamentos';
+  const w=window.open('','_blank','width=380,height=700');if(!w)return alert('Libere pop-ups para imprimir.');
+  w.document.write(`<pre style="font:13px/1.4 monospace;white-space:pre-wrap">BAR ON-LINE DO CRUZEIRO
+RELATÓRIO DE CAIXA
+--------------------------------
+Abertura: ${when(s.opened_at)}
+${esc(s.opened_by)}
+${s.closed_at?'Fechamento: '+when(s.closed_at)+'\n'+esc(s.closed_by):'Caixa ainda aberto'}
+--------------------------------
+VENDAS
+${esc(meth)}
+${ln('Total vendido',brl(m.totalSalesCents))}
+--------------------------------
+DINHEIRO
+${ln('Troco inicial',brl(m.openingCents))}
+${ln('Vendas em dinheiro',brl(m.cashSalesCents))}
+${ln('Entradas','+'+brl(m.suppliesCents))}
+${ln('Retiradas','-'+brl(m.withdrawalsCents))}
+${ln('Despesas','-'+brl(m.expensesCents))}
+${ln('ESPERADO',brl(m.expectedCashCents))}${s.closed_at?'\n'+ln('Contado',brl(s.counted_cents))+'\n*** '+diffTxt(s.difference_cents)+' ***'+(s.close_notes?'\nObs.: '+esc(s.close_notes):''):''}
+--------------------------------
+LANÇAMENTOS
+${mov}</pre>`);w.document.close();w.focus();w.print();
+}
+async function cash(){
+  document.title='Painel — Bar On-line do Cruzeiro';
+  const [cur,hist]=await Promise.all([api('cash/current'),api('cash/history')]);
+  const by=`<label class="muted">Responsável (opcional)<input id="c-by" maxlength="60" placeholder="Seu nome" value="${esc(sessionStorage.getItem('bdc_by')||'')}"></label>`;
+  let html='';
+  if(cashLast&&!cur.session)html+=cashReport(cashLast,'Caixa fechado agora');
+  if(!cur.session){
+    html+=`<div class="box"><b>🔒 Caixa fechado</b><p class="muted">Conte o dinheiro da gaveta e informe como troco inicial para abrir o caixa.</p><div class="grid"><label class="muted">Troco inicial (R$)<input id="c-open" inputmode="decimal" placeholder="Ex.: 100,00"></label><label class="muted">Observação (opcional)<input id="c-onotes" maxlength="500" placeholder="Ex.: turno da noite"></label>${by}</div><button class="p" id="c-open-go">Abrir caixa</button><div class="err" id="c-err"></div></div>`;
+  }else{
+    html+=`<div class="box"><b>🔓 Caixa aberto</b><p class="muted">Desde ${when(cur.session.opened_at)} por ${esc(cur.session.opened_by)}. Os valores contam os pedidos não cancelados desde a abertura.</p>${cashSummary(cur.summary)}</div>
+    <div class="box"><b>Lançar movimento</b><div class="grid"><label class="muted">Tipo<select id="c-kind"><option value="sangria">Retirada (sangria)</option><option value="despesa">Despesa paga do caixa</option><option value="suprimento">Entrada de dinheiro</option></select></label><label class="muted">Valor (R$)<input id="c-amt" inputmode="decimal" placeholder="Ex.: 20,00"></label><label class="muted">Motivo<input id="c-reason" maxlength="200" placeholder="Ex.: compra de gelo"></label>${by}</div><button class="p" id="c-move-go">Lançar</button><div class="err" id="c-err"></div>${cashMoves(cur.movements,true)}</div>
+    <div class="box"><b>Fechar caixa</b><p class="muted">Conte todo o dinheiro da gaveta e informe o valor. O sistema compara com o esperado (<b>${brl(cur.summary.expectedCashCents)}</b>).</p><div class="grid"><label class="muted">Dinheiro contado (R$)<input id="c-count" inputmode="decimal" placeholder="Ex.: 250,00"></label><label class="muted">Observação (opcional)<input id="c-cnotes" maxlength="500" placeholder="Ex.: faltou troco"></label></div><button class="d" id="c-close-go">Fechar caixa</button><div class="err" id="c-err2"></div></div>`;
+  }
+  html+=`<h2 style="font-size:18px;margin:16px 0 8px">Caixas anteriores</h2>`+(hist.length?`<div class="box tw"><table><thead><tr><th>Aberto</th><th>Fechado</th><th>Responsável</th><th>Esperado</th><th>Contado</th><th>Resultado</th><th></th></tr></thead><tbody>${hist.map(h=>`<tr><td>${when(h.opened_at)}</td><td>${when(h.closed_at)}</td><td>${esc(h.closed_by)}</td><td>${brl(h.expected_cents)}</td><td>${brl(h.counted_cents)}</td><td class="${diffCls(h.difference_cents)}">${diffTxt(h.difference_cents)}</td><td><button class="small" data-cview="${h.id}">Ver</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nenhum caixa fechado ainda.</p>');
+  $('#body').innerHTML='<div id="c-detail"></div>'+html;
+  const by_=()=>{const v=($('#c-by')?.value||'').trim();if($('#c-by'))sessionStorage.setItem('bdc_by',v);return v};
+  const run=(errSel,fn)=>async()=>{try{await fn()}catch(e){const el=$(errSel);if(el)el.textContent=e.message;else alert(e.message)}};
+  const post=(path,body,m='POST')=>api('cash/'+path,{method:m,body:JSON.stringify(body)});
+  if($('#c-open-go'))$('#c-open-go').onclick=run('#c-err',async()=>{
+    const c=toCents($('#c-open').value);if(c===null)throw new Error('Digite o troco inicial em reais. Ex.: 100,00');
+    cashLast=null;await post('open',{openingCents:c,notes:$('#c-onotes').value,by:by_()});cash()});
+  if($('#c-move-go'))$('#c-move-go').onclick=run('#c-err',async()=>{
+    const c=toCents($('#c-amt').value);if(!c)throw new Error('Digite um valor maior que zero. Ex.: 20,00');
+    await post('movements',{kind:$('#c-kind').value,amountCents:c,reason:$('#c-reason').value,by:by_()});cash()});
+  if($('#c-close-go'))$('#c-close-go').onclick=run('#c-err2',async()=>{
+    const c=toCents($('#c-count').value);if(c===null)throw new Error('Digite o dinheiro contado em reais. Ex.: 250,00');
+    if(!confirm('Fechar o caixa agora? Depois de fechado ele não pode ser alterado.'))return;
+    cashLast=await post('close',{countedCents:c,notes:$('#c-cnotes').value,by:(sessionStorage.getItem('bdc_by')||'')});cash()});
+  document.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=run('',async()=>{
+    if(!confirm('Desfazer este lançamento?'))return;await api('cash/movements/'+b.dataset.cdel,{method:'DELETE'});cash()}));
+  document.querySelectorAll('[data-cview]').forEach(b=>b.onclick=run('',async()=>{
+    const r=await api('cash/sessions/'+b.dataset.cview);$('#c-detail').innerHTML=cashReport(r,'Detalhes do caixa');
+    document.querySelectorAll('[data-cprint]').forEach(x=>x.onclick=()=>printCash(r));scrollTo({top:0,behavior:'smooth'})}));
+  document.querySelectorAll('[data-cprint]').forEach(x=>x.onclick=()=>printCash(cashLast));
 }
 token?shell():login();
 </script>

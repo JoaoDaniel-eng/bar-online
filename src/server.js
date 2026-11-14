@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
 const { PRODUCT_IMAGE_URLS } = require('./fotos-catalogo');
+const caixa = require('./caixa');
 
 (function loadEnv() {
   const p = require('path').join(__dirname, '..', '.env');
@@ -77,6 +78,7 @@ async function initDb() {
     ALTER TABLE brands ADD COLUMN IF NOT EXISTS image_ver BIGINT NOT NULL DEFAULT 0;
     UPDATE products SET image_ver=1 WHERE image_ver=0 AND left(image_url,11)='data:image/';
     UPDATE brands SET image_ver=1 WHERE image_ver=0 AND left(logo_url,11)='data:image/';`);
+  await pool.query(caixa.SCHEMA);
   const { rows } = await pool.query('SELECT COUNT(*)::int AS n FROM products');
   const catalogo = require('./catalogo');
   if (rows[0].n === 0) await catalogo.load(pool);
@@ -280,6 +282,9 @@ app.delete('/api/admin/brands/:id/logo', auth, wrap(async (req, res) => {
 app.delete('/api/admin/brands/:id', auth, wrap(async (req, res) => {
   await pool.query('DELETE FROM brands WHERE id=$1', [parseInt(req.params.id, 10)]); res.json({ ok: true });
 }));
+
+/* Caixa: /api/admin/cash/* (já exige login) */
+app.use('/api/admin/cash', caixa.createRouter({ pool, auth, wrap, clip }));
 
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], setHeaders: (res, f) => { if (/\.(png|jpe?g|webp|svg)$/i.test(f)) res.set('Cache-Control', 'public, max-age=86400'); } }));
 app.get('/healthz', (req, res) => res.send('ok'));
