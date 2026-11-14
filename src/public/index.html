@@ -139,6 +139,10 @@ html{scroll-padding-top:calc(var(--navh) + 70px)}
 .links{display:flex;align-items:center;gap:6px;margin-left:auto}
 .links a,.links button{padding:8px 14px;border-radius:12px;color:var(--foam);font:600 15px Poppins,sans-serif;text-decoration:none}
 .links a:hover,.links button:hover{background:var(--panel)}
+.instbtn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--amber-text);background:rgba(255,176,32,.12);color:var(--amber-text);font:700 14px Poppins,sans-serif;white-space:nowrap;flex:none}
+.instbtn[hidden]{display:none}.instbtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:420px){.instbtn{width:40px;padding:0;justify-content:center}.instbtn span{display:none}}
+.how{margin:10px 0 0;padding-left:22px;display:grid;gap:10px;line-height:1.45}
 .who{padding:0 14px;min-height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);font:600 14px Poppins,sans-serif;white-space:nowrap}
 .mypedido{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 20px;border-radius:999px;background:var(--blue);color:#fff;font:700 15px Poppins,sans-serif;white-space:nowrap;box-shadow:0 6px 22px rgba(45,107,255,.35)}
 .mypedido .cnt{min-width:24px;height:24px;padding:0 6px;border-radius:99px;background:var(--amber);color:#1a1100;font-size:13px;display:grid;place-items:center}
@@ -222,6 +226,10 @@ html[data-theme=light] .bgart{opacity:.24}
 @keyframes artdrift{to{background-position:0 0,0 0,320px 320px}}
 @media(max-width:900px){.bgart{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto}}
+/* topo em celular estreito: cabe burger + botão instalar + entrar + meu pedido (vem por último para vencer as regras acima) */
+@media(max-width:420px){.nav{gap:6px;padding:0 10px}.who{padding:0 10px;font-size:13px;min-width:0}.mypedido{padding:0 12px;gap:8px;font-size:14px}}
+@media(max-width:400px){.mypedido .mp-l{display:none}.mypedido .mp-t{display:inline-block}.mypedido .mp-t::first-letter{text-transform:uppercase}}
+@media(max-width:340px){.brand{display:none}}
 </style>
 </head>
 <body>
@@ -237,10 +245,11 @@ html[data-theme=light] .bgart{opacity:.24}
 <header class="nav">
   <button class="burger" id="burger" aria-label="Abrir menu" aria-controls="drawer"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   <a class="brand" href="/"><img src="/icons/icon-192.png" alt=""><b>Bar <span>do Cruzeiro</span></b></a>
-  <div class="links"><a href="#menu">Cardápio</a><button id="navBrands">Marcas</button><button id="install" hidden>Instalar app</button></div>
+  <div class="links"><a href="#menu">Cardápio</a><button id="navBrands">Marcas</button></div>
+  <button class="instbtn" id="install" type="button" hidden aria-label="Instalar o app no celular"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 19h14"/></svg><span>Instalar app</span></button>
   <button class="who" id="who">Entrar</button>
   <button class="themebtn" id="themeBtn" type="button"></button>
-  <button class="mypedido" id="navCart">Meu pedido <span class="cnt" id="navCnt">0</span></button>
+  <button class="mypedido" id="navCart"><span class="mp-l">Meu </span><span class="mp-t">pedido</span> <span class="cnt" id="navCnt">0</span></button>
 </header>
 <div class="drawer-bg" id="drawerBg"></div>
 <aside class="drawer" id="drawer" aria-label="Menu da conta" aria-hidden="true"><button class="dr-close" id="drClose" aria-label="Fechar menu">×</button><div id="drawerBody"></div></aside>
@@ -661,12 +670,27 @@ function paintTheme(){
 function toggleTheme(){const t=isLight()?'dark':'light';document.documentElement.dataset.theme=t;store.set('bdc_theme',t);paintTheme();renderDrawer()}
 $('#themeBtn').onclick=toggleTheme;paintTheme();renderDrawer();
 
-/* PWA */
+/* PWA: botão "Instalar app" no topo (celular e computador) */
 let dp;
-addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('#install').hidden=false});
-$('#install').onclick=async()=>{if(!dp)return;dp.prompt();await dp.userChoice;dp=null;$('#install').hidden=true};
-addEventListener('appinstalled',()=>$('#install').hidden=true);
-if(/iphone|ipad/i.test(navigator.userAgent)&&!navigator.standalone)$('#iosHint').hidden=false;
+const ua=navigator.userAgent,isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),inApp=/FBAN|FBAV|Instagram|WhatsApp|; wv\)/i.test(ua);
+const isInstalled=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+if(!isInstalled())$('#install').hidden=false;   // só some quando o app já está instalado
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e});
+addEventListener('appinstalled',()=>{$('#install').hidden=true;dp=null});
+function installHelp(){
+  const steps=inApp?['Você abriu o site dentro de outro app (Instagram, WhatsApp…). Toque no menu (⋮ ou ⋯) e escolha <b>Abrir no navegador</b>.','No navegador, toque em <b>Instalar app</b> de novo.']
+    :isIOS?['Abra este site no <b>Safari</b>.','Toque no botão <b>Compartilhar</b> (o quadrado com uma seta para cima), na barra de baixo.','Role a lista e toque em <b>Adicionar à Tela de Início</b>.','Toque em <b>Adicionar</b>. O ícone do Bar do Cruzeiro aparece na tela do celular.']
+    :['Toque no menu <b>⋮</b> do Chrome (canto superior direito).','Toque em <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.','Confirme. O ícone do Bar do Cruzeiro aparece na tela do celular.'];
+  open(`<button class="close" aria-label="Fechar">×</button><h2>Instalar o app</h2>
+  <p class="hint" style="margin-top:6px">Abra o bar direto do celular, sem digitar o endereço.</p>
+  <ol class="how">${steps.map(t=>`<li>${t}</li>`).join('')}</ol>
+  ${inApp||isIOS?'':'<p class="hint">No computador, use o ícone de instalar na barra de endereço do Chrome ou do Edge.</p>'}`,'install');
+}
+$('#install').onclick=async()=>{
+  if(!dp)return installHelp();
+  dp.prompt();const c=await dp.userChoice;dp=null;if(c.outcome==='accepted')$('#install').hidden=true;
+};
+if(isIOS&&!isInstalled())$('#iosHint').hidden=false;
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'));
 
 /* Idade */

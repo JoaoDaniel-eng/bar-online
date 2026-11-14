@@ -75,3 +75,9 @@ Aba **Marcas** → no cartão da marca, escolha uma imagem (JPG, PNG ou WebP) e 
 ## Checkout (entrega)
 - Se faltar nome, WhatsApp com DDD, bairro, endereço ou forma de pagamento, o campo fica com contorno vermelho, aparece o aviso embaixo dele e a tela rola até o primeiro que falta. O aviso some quando o cliente corrige.
 - A caixinha **Salvar meus dados de entrega** vem marcada. Sem conta, os dados ficam só no aparelho (navegador) e já vêm preenchidos no próximo pedido. Com conta, nome, bairro e endereço também são salvos na conta. Desmarcada, nada é guardado (e o que estava no aparelho é apagado). A escolha fica lembrada.
+
+## Botão "Instalar app"
+- Fica no topo da loja, também no celular. Some sozinho quando o app já está instalado (ou quando o cliente instala).
+- No Android/Chrome e no computador (Chrome/Edge), um toque abre a janela de instalação do navegador. Se o navegador ainda não liberou a instalação, o botão mostra o passo a passo.
+- No iPhone o Safari não permite instalar por botão: o toque mostra o passo a passo (Compartilhar → Adicionar à Tela de Início). Dentro do Instagram/WhatsApp ele orienta a abrir no navegador.
+- A instalação só funciona em HTTPS (o Render já fornece). Em telas estreitas o botão vira só o ícone, e "Meu pedido" vira "Pedido" para tudo caber.
