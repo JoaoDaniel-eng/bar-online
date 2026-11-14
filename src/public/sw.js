@@ -1,4 +1,4 @@
-const V = 'bdc-v3';
+const V = 'bdc-v4';
 const FILES = ['/', '/manifest.webmanifest', '/icons/logo.jpg', '/icons/icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

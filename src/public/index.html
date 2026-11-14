@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;1,800&family=Barlow:wght@400;500;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;1,800&family=Barlow:wght@400;500;600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
@@ -120,6 +120,55 @@ footer{max-width:720px;margin:36px auto 0;padding:0 16px 28px;color:var(--muted)
 .lg{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font:800 15px 'Barlow Condensed',sans-serif;overflow:hidden;flex:none;background:var(--panel)}
 .lg img{width:100%;height:100%;object-fit:contain}
 .sback{margin:14px 0 0;color:var(--blue-soft);min-height:44px;font-weight:600}
+
+/* Topo estilo Açaí da Roça + gaveta da conta */
+:root{--navh:68px}
+html{scroll-padding-top:calc(var(--navh) + 70px)}
+.nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;height:var(--navh);padding:0 max(14px,calc((100% - 1240px)/2));background:rgba(0,0,0,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);font-family:Poppins,system-ui,sans-serif}
+.burger{width:46px;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;flex:none}
+.burger svg{width:22px;height:22px;stroke:var(--foam)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--foam);text-decoration:none;font-weight:700;font-size:19px;white-space:nowrap}
+.brand img{width:38px;height:38px;border-radius:50%;border:1px solid var(--line)}.brand span{color:var(--blue-soft)}
+.links{display:flex;align-items:center;gap:6px;margin-left:auto}
+.links a,.links button{padding:8px 14px;border-radius:12px;color:var(--foam);font:600 15px Poppins,sans-serif;text-decoration:none}
+.links a:hover,.links button:hover{background:var(--panel)}
+.who{padding:0 14px;min-height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);font:600 14px Poppins,sans-serif;white-space:nowrap}
+.mypedido{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 20px;border-radius:999px;background:var(--blue);color:#fff;font:700 15px Poppins,sans-serif;white-space:nowrap;box-shadow:0 6px 22px rgba(45,107,255,.35)}
+.mypedido .cnt{min-width:24px;height:24px;padding:0 6px;border-radius:99px;background:var(--amber);color:#1a1100;font-size:13px;display:grid;place-items:center}
+.chips{top:var(--navh)}
+.drawer-bg{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.65);opacity:0;pointer-events:none;transition:opacity .2s}
+.drawer{position:fixed;top:0;bottom:0;left:0;z-index:81;width:min(320px,86vw);background:#050b1f;border-right:1px solid var(--line);transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column;font-family:Poppins,system-ui,sans-serif;overflow:auto}
+body.dr-open .drawer{transform:none}body.dr-open .drawer-bg{opacity:1;pointer-events:auto}
+.dr-head{padding:28px 22px 20px;background:linear-gradient(135deg,#0d2a8f,#1a4fe0 70%,#2d6bff);display:grid;gap:8px;justify-items:start}
+.dr-head h3{font:700 22px Poppins,sans-serif;font-style:normal}.dr-head small{color:rgba(255,255,255,.8);font-size:14px}
+.pts{display:inline-flex;align-items:center;gap:6px;margin-top:4px;padding:8px 14px;border-radius:99px;background:rgba(255,255,255,.16);font:600 14px Poppins,sans-serif}
+.dr-list{list-style:none;padding:10px 0;display:grid}
+.dr-list button{width:100%;display:flex;align-items:center;gap:16px;padding:16px 24px;text-align:left;font:600 17px Poppins,sans-serif;color:var(--foam)}
+.dr-list button:hover{background:rgba(45,107,255,.14)}.dr-list .ic{width:26px;text-align:center;font-size:19px}
+.dr-list .out{color:#ff9aa5}
+.dr-close{position:absolute;right:10px;top:10px;width:40px;height:40px;font-size:26px;color:#fff}
+/* Telas da conta */
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 4px}
+.seg button{min-height:46px;border-radius:14px;border:1px solid var(--line);background:var(--panel);font:600 15px Poppins,sans-serif;color:var(--foam)}
+.seg button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.panel h2,.panel .ptitle{font-family:Poppins,system-ui,sans-serif;font-style:normal;font-weight:700;font-size:24px}
+.pointsbox{margin:10px 0 14px;padding:18px;border-radius:18px;background:linear-gradient(135deg,#0d2a8f,#2d6bff);display:grid;gap:4px}
+.pointsbox strong{font:700 34px Poppins,sans-serif}.pointsbox small{opacity:.85;font-size:13.5px}
+.kv{display:grid;gap:2px;padding:10px 0;border-bottom:1px solid var(--line)}.kv small{color:var(--muted);font-size:13px}.kv b{font-weight:600}
+.ord{padding:14px;border:1px solid var(--line);border-radius:16px;margin:10px 0;background:rgba(0,0,0,.25)}
+.ord .oh{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px}.ord ul{list-style:none;padding:0;color:var(--muted);font-size:14.5px;margin:6px 0 10px}
+.spill{padding:3px 12px;border-radius:99px;font:600 12.5px Poppins,sans-serif;border:1px solid currentColor;text-transform:capitalize}
+.spill.novo{color:var(--amber)}.spill.preparando{color:#7ea6ff}.spill.saiu{color:#c79cff}.spill.entregue{color:var(--ok)}.spill.cancelado{color:#ff9aa5}
+.cpn{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px;border:1px dashed var(--blue-soft);border-radius:16px;margin:10px 0}
+.cpn b{font:700 18px Poppins,sans-serif;letter-spacing:.04em}.cpn small{display:block;color:var(--muted);font-size:13.5px}.cpn.off{opacity:.5;border-color:var(--line)}
+.btn.sm{min-height:40px;padding:0 16px;font-size:14px}
+.fav{flex:none;width:40px;height:40px;border-radius:50%;font-size:20px;color:var(--muted);display:grid;place-items:center}
+.fav.on{color:#ff5d7a}
+.linkbtn{color:var(--blue-soft);font-weight:600;text-decoration:underline;min-height:40px}
+.perk{margin:10px 0 2px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(45,107,255,.1);font-size:14.5px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.msg{margin-top:8px;min-height:1.3em;font-size:14.5px}.msg.ok{color:var(--ok)}.msg.err{color:var(--danger)}
+@media(max-width:860px){.links{display:none}.mypedido{margin-left:auto}}
+@media(max-width:520px){.brand b{display:none}.who{max-width:130px;overflow:hidden;text-overflow:ellipsis}.mypedido{padding:0 14px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto}}
 </style>
 </head>
@@ -132,11 +181,15 @@ footer{max-width:720px;margin:36px auto 0;padding:0 16px 28px;color:var(--muted)
     <button class="btn ghost" id="no">Não</button></div>
 </div>
 
-<header class="top">
-  <img src="/icons/icon-192.png" alt="">
-  <b>Bar On-line do Cruzeiro</b>
-  <button class="btn ghost" id="install" hidden>Instalar app</button>
+<header class="nav">
+  <button class="burger" id="burger" aria-label="Abrir menu" aria-controls="drawer"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <a class="brand" href="/"><img src="/icons/icon-192.png" alt=""><b>Bar <span>do Cruzeiro</span></b></a>
+  <div class="links"><a href="#menu">Cardápio</a><button id="navBrands">Marcas</button><button id="install" hidden>Instalar app</button></div>
+  <button class="who" id="who">Entrar</button>
+  <button class="mypedido" id="navCart">Meu pedido <span class="cnt" id="navCnt">0</span></button>
 </header>
+<div class="drawer-bg" id="drawerBg"></div>
+<aside class="drawer" id="drawer" aria-label="Menu da conta" aria-hidden="true"><button class="dr-close" id="drClose" aria-label="Fechar menu">×</button><div id="drawerBody"></div></aside>
 <div class="sb" id="sb" role="status" hidden></div>
 
 <section class="hero">
@@ -202,6 +255,7 @@ function rowHtml(p){
   const q=cart[p.id]||0,s=stockOf(p),out=s===0,low=s!==null&&s>0&&s<=3;
   return `<div class="row${out?' out':''}"><div class="tile">${tileInner(p)}</div>
   <div class="info"><h3>${esc(p.name)}</h3>${p.description?`<small>${esc(p.description)}</small>`:''}<div class="price">${brl(p.price_cents)}</div>${low?`<span class="lowtag">🔥 ${s===1?'Último!':'Os '+s+' últimos!'}</span>`:''}</div>
+  <button class="fav ${favs.has(p.id)?'on':''}" data-fav="${p.id}" aria-label="${favs.has(p.id)?'Tirar dos favoritos':'Favoritar'} ${esc(p.name)}" aria-pressed="${favs.has(p.id)}">${favs.has(p.id)?'♥':'♡'}</button>
   ${out?'<span class="soldout">Esgotado</span>':q?`<div class="step"><button data-m="${p.id}" aria-label="Tirar um ${esc(p.name)}">−</button><span>${q}</span><button data-a="${p.id}" aria-label="Adicionar mais um ${esc(p.name)}" ${q>=maxQty(p)?'disabled':''}>+</button></div>`:`<button class="add" data-a="${p.id}" aria-label="Adicionar ${esc(p.name)}">+</button>`}</div>`;
 }
 function render(){
@@ -245,8 +299,8 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#allBrands')){sBrand='';renderSearch()}
 });
 function totals(){let n=0,s=0;for(const p of products){const q=cart[p.id]||0;n+=q;s+=q*p.price_cents}return{n,s}}
-function bar(){const t=totals();$('#bar').hidden=!t.n;$('#bc').textContent=t.n+(t.n===1?' item':' itens');$('#bt').textContent=brl(t.s);store.set('bdc_cart',cart)}
-function change(id,d){const p=products.find(x=>x.id==id),q=Math.max(0,Math.min(p?maxQty(p):99,(cart[id]||0)+d));if(q)cart[id]=q;else delete cart[id];render();if($('#sheet').classList.contains('open')&&view==='cart')showCart()}
+function bar(){const t=totals();const nc=$('#navCnt');if(nc)nc.textContent=t.n;$('#bar').hidden=!t.n;$('#bc').textContent=t.n+(t.n===1?' item':' itens');$('#bt').textContent=brl(t.s);store.set('bdc_cart',cart)}
+function change(id,d){const p=products.find(x=>x.id==id),q=Math.max(0,Math.min(p?maxQty(p):99,(cart[id]||0)+d));if(q)cart[id]=q;else delete cart[id];render();if($('#sheet').classList.contains('open')){if(view==='cart')showCart();else if(view==='favs')showFavs()}}
 
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-a]'),m=e.target.closest('[data-m]');
@@ -272,8 +326,9 @@ function showCart(note){
 $('#openCart').onclick=()=>showCart();
 
 function showCheckout(){
-  const d=store.get('bdc_cust',{}),t=totals();
+  const d=me?{name:me.name,phone:me.phone,zone:me.zone,address:me.address,...Object.fromEntries(Object.entries(store.get('bdc_cust',{})).filter(([k,v])=>v&&!me[k]))}:store.get('bdc_cust',{}),t=totals();
   open(`<button class="close" aria-label="Fechar">×</button><h2>Entrega e pagamento</h2>
+  ${me?'':`<div class="perk"><span>💙 Crie sua conta e ganhe pontos a cada pedido entregue.</span><button type="button" class="linkbtn" id="perkGo">Entrar</button></div>`}
   <form id="f" novalidate>
   <label for="n">Seu nome</label><input id="n" autocomplete="name" value="${esc(d.name)}">
   <label for="p">WhatsApp com DDD</label><input id="p" type="tel" inputmode="tel" autocomplete="tel" value="${esc(d.phone)}">
@@ -293,6 +348,7 @@ function showCheckout(){
   <div class="line"><span>Total</span><span class="tot" id="tot">${brl(t.s)}</span></div>
   <div class="err" id="err" role="alert"></div>
   <button class="btn" style="width:100%" id="send">Enviar pedido</button></form>`,'co');
+  if($('#perkGo'))$('#perkGo').onclick=()=>showAuth('login',showCheckout);
   let cp=null;
   const upd=()=>{const o=$('#z').selectedOptions[0],f0=o&&o.dataset.f?+o.dataset.f:null,fm=cfg.free_delivery_min_cents||0,disc=cp?cp.discount_cents:0,paid=t.s-disc,free=fm>0&&paid>=fm,f=f0==null?null:(free?0:f0);
     $('#dl').hidden=!disc;$('#dc').textContent=cp?'('+cp.code+')':'';$('#dv').textContent='−'+brl(disc);
@@ -309,6 +365,7 @@ function showCheckout(){
     catch(x){cp=null;upd();cpMsg(navigator.onLine?x.message:'Sem internet. Conecte-se para aplicar o cupom.')}
     b.disabled=false};
   $('#z').onchange=upd;upd();
+  if(pendingCoupon){$('#cp').value=pendingCoupon;pendingCoupon='';$('#cpb').click()}
   if(st&&!st.open){$('#err').textContent=st.message;$('#send').disabled=true}
   document.querySelectorAll('[name=pay]').forEach(r=>r.onchange=()=>{$('#chg').hidden=r.value!=='dinheiro'||!r.checked});
   $('#f').onsubmit=async e=>{
@@ -317,10 +374,10 @@ function showCheckout(){
     const body={name:$('#n').value,phone:$('#p').value,zone:$('#z').value,address:$('#a').value,payment:pay,change_for:$('#c').value,notes:$('#o').value,coupon:cp?cp.code:'',items:Object.entries(cart).map(([id,qty])=>({id,qty}))};
     const btn=$('#send');btn.disabled=true;btn.textContent='Enviando…';
     try{
-      const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json',...(ctoken?{Authorization:'Bearer '+ctoken}:{})},body:JSON.stringify(body)});
       const j=await r.json();if(!r.ok){const er=new Error(j.error||'Não foi possível enviar.');er.stock=!!j.stock;throw er}
       store.set('bdc_cust',{name:body.name,phone:body.phone,zone:body.zone,address:body.address});
-      cart={};render();done(j,body);refreshProducts();
+      cart={};render();done(j,body);refreshProducts();if(ctoken)loadMe();
     }catch(x){
       if(x.stock){await refreshProducts();showCart(x.message);return}   // acabou enquanto o cliente comprava: volta ao carrinho já corrigido
       err.textContent=navigator.onLine?x.message:'Sem internet. Conecte-se para enviar o pedido.';btn.disabled=false;btn.textContent='Enviar pedido'}
@@ -333,6 +390,160 @@ function done(o,b){
   <p style="margin:10px 0 16px;color:var(--muted)">Total ${brl(o.total_cents)}${o.discount_cents?' (cupom '+esc(o.coupon_code)+': −'+brl(o.discount_cents)+')':''}${o.free_delivery?' (frete grátis)':''} · pagamento na entrega.${cfg.estimated_min&&cfg.estimated_max?` Previsão de entrega: ${cfg.estimated_min} a ${cfg.estimated_max} minutos.`:''} Para agilizar, confirme pelo WhatsApp.</p>
   ${cfg.whatsapp?`<a class="btn" style="width:100%" target="_blank" rel="noopener" href="https://wa.me/${cfg.whatsapp}?text=${encodeURIComponent(msg)}">Confirmar no WhatsApp</a>`:''}</div>`,'ok');
 }
+
+
+/* ---------- Conta do cliente ---------- */
+let me=null,ctoken=store.get('bdc_ct',''),favs=new Set(),pendingCoupon='';
+const firstName=n=>String(n||'').trim().split(/\s+/)[0];
+const fmtPhone=v=>{const d=String(v||'').replace(/\D/g,'');return d.length===11?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d.length===10?`(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`:v};
+const fmtDate=d=>new Date(d).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+async function capi(path,opt={}){
+  const r=await fetch('/api/customers/'+path,{cache:'no-store',...opt,headers:{'Content-Type':'application/json',...(ctoken?{Authorization:'Bearer '+ctoken}:{})}});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401&&!/^(login|register)$/.test(path)){logoutLocal();throw new Error(j.error||'Entre na sua conta.')}
+  if(!r.ok)throw new Error(j.error||'Não foi possível concluir.');
+  return j;
+}
+function logoutLocal(){ctoken='';me=null;favs=new Set();store.set('bdc_ct','');updateNav();if(products.length)render()}
+function updateNav(){
+  $('#who').textContent=me?`Olá, ${firstName(me.name)}! 👋`:'Entrar';
+  renderDrawer();
+}
+async function loadMe(){
+  if(!ctoken){updateNav();return}
+  try{me=await capi('me');favs=new Set(await capi('me/favorites'))}catch(e){if(ctoken){/* falha de rede: mantém sessão */}}
+  updateNav();if(products.length)render();
+}
+/* Gaveta */
+function openDrawer(){document.body.classList.add('dr-open');$('#drawer').setAttribute('aria-hidden','false');document.body.style.overflow='hidden'}
+function closeDrawer(){document.body.classList.remove('dr-open');$('#drawer').setAttribute('aria-hidden','true');if(!sheet.classList.contains('open')&&!sOpen)document.body.style.overflow=''}
+function renderDrawer(){
+  const items=me?[['acc','👤','Minha conta'],['orders','🧾','Meus pedidos'],['coupons','🎟️','Meus cupons'],['favs','⭐','Meus favoritos'],['settings','⚙️','Configurações'],['out','🚪','Sair da conta']]
+    :[['menu','🍺','Cardápio'],['brands','🔎','Marcas'],['auth','👤','Entrar ou criar conta']];
+  $('#drawerBody').innerHTML=`<div class="dr-head">${me?`<h3>Olá, ${esc(firstName(me.name))}! 👋</h3><small>${esc(fmtPhone(me.phone))}</small><span class="pts">💙 ${me.points} ponto${me.points===1?'':'s'} no Clube do Cruzeiro</span>`
+    :`<h3>Bem-vindo! 👋</h3><small>Entre para acompanhar pedidos, salvar favoritos e ganhar pontos.</small>`}</div>
+  <ul class="dr-list">${items.map(i=>`<li><button data-go="${i[0]}" class="${i[0]==='out'?'out':''}"><span class="ic">${i[1]}</span>${i[2]}</button></li>`).join('')}</ul>`;
+}
+const GO={
+  acc:()=>showAccount(),orders:()=>showOrders(),coupons:()=>showCoupons(),favs:()=>showFavs(),settings:()=>showSettings(),
+  auth:()=>showAuth(),menu:()=>{location.hash='#menu'},brands:()=>openSearch(),
+  out:()=>{logoutLocal();closeSheet()}
+};
+$('#drawer').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;closeDrawer();GO[b.dataset.go]()});
+$('#burger').onclick=openDrawer;$('#drClose').onclick=closeDrawer;$('#drawerBg').onclick=closeDrawer;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('dr-open'))closeDrawer()});
+$('#navCart').onclick=()=>showCart();$('#navBrands').onclick=()=>openSearch();
+$('#who').onclick=()=>me?(renderDrawer(),openDrawer()):showAuth();
+
+/* Login / cadastro */
+function showAuth(tab='login',after,note){
+  const reg=tab==='register';
+  open(`<button class="close" aria-label="Fechar">×</button><h2>${reg?'Criar conta':'Entrar'}</h2>
+  ${note?`<p class="hint" style="margin:0 0 8px">${esc(note)}</p>`:''}
+  <div class="seg"><button type="button" data-tab="login" class="${reg?'':'on'}">Entrar</button><button type="button" data-tab="register" class="${reg?'on':''}">Criar conta</button></div>
+  <form id="af" novalidate>
+  ${reg?'<label for="an">Seu nome</label><input id="an" autocomplete="name" maxlength="80">':''}
+  <label for="ap">WhatsApp com DDD</label><input id="ap" type="tel" inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999">
+  <label for="aw">Senha${reg?' (mínimo 6 caracteres)':''}</label><input id="aw" type="password" autocomplete="${reg?'new-password':'current-password'}">
+  <div class="msg err" id="am" role="alert"></div>
+  <button class="btn" style="width:100%" id="ago">${reg?'Criar minha conta':'Entrar'}</button>
+  ${reg?'<p class="hint">Ganhe 1 ponto a cada R$ 1,00 em bebidas dos pedidos entregues.</p>':'<p class="hint">Esqueceu a senha? Chame o bar no WhatsApp para criar uma nova.</p>'}
+  </form>`,'auth');
+  panel.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>showAuth(b.dataset.tab,after,note));
+  const ph=store.get('bdc_cust',{}).phone;if(ph)$('#ap').value=ph;
+  $('#af').onsubmit=async e=>{
+    e.preventDefault();const m=$('#am'),b=$('#ago');m.textContent='';b.disabled=true;const t0=b.textContent;b.textContent='Aguarde…';
+    try{
+      const body={phone:$('#ap').value,password:$('#aw').value,...(reg?{name:$('#an').value}:{})};
+      const j=await capi(reg?'register':'login',{method:'POST',body:JSON.stringify(body)});
+      ctoken=j.token;store.set('bdc_ct',ctoken);me=j.profile;
+      try{favs=new Set(await capi('me/favorites'))}catch(x){}
+      updateNav();render();closeSheet();if(after)after();
+    }catch(x){m.textContent=navigator.onLine?x.message:'Sem internet. Conecte-se para continuar.';b.disabled=false;b.textContent=t0}
+  };
+  setTimeout(()=>{const f=$(reg?'#an':'#ap');if(f)f.focus()},60);
+}
+const needLogin=(fn,note)=>()=>{if(!me)return showAuth('login',fn,note);fn()};
+
+function showAccount(){
+  if(!me)return showAuth('login',showAccount);
+  open(`<button class="close" aria-label="Fechar">×</button><h2>Minha conta</h2>
+  <div class="pointsbox"><small>Clube do Cruzeiro</small><strong>${me.points} ponto${me.points===1?'':'s'}</strong><small>1 ponto a cada R$ 1,00 em bebidas dos pedidos entregues.</small></div>
+  <div class="kv"><small>Nome</small><b>${esc(me.name)}</b></div>
+  <div class="kv"><small>WhatsApp</small><b>${esc(fmtPhone(me.phone))}</b></div>
+  <div class="kv"><small>Endereço de entrega</small><b>${me.address?esc(me.address)+(me.zone?' — '+esc(me.zone):''):'Ainda não cadastrado'}</b></div>
+  <div class="kv"><small>Pedidos feitos</small><b>${me.orders}</b></div>
+  <div class="kv"><small>Cliente desde</small><b>${new Date(me.created_at).toLocaleDateString('pt-BR')}</b></div>
+  <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn sm" id="gOrd">Meus pedidos</button><button class="btn ghost" id="gSet">Editar dados</button></div>`,'acc');
+  $('#gOrd').onclick=showOrders;$('#gSet').onclick=showSettings;
+}
+
+async function showOrders(){
+  if(!me)return showAuth('login',showOrders);
+  open(`<button class="close" aria-label="Fechar">×</button><h2>Meus pedidos</h2><p class="hint">Carregando…</p>`,'orders');
+  try{
+    const list=await capi('me/orders');
+    open(`<button class="close" aria-label="Fechar">×</button><h2>Meus pedidos</h2>`+(list.length?list.map(o=>`<div class="ord"><div class="oh"><b>Pedido #${o.id}</b><span class="spill ${esc(o.status)}">${esc(o.status)}</span></div>
+      <small style="color:var(--muted)">${fmtDate(o.created_at)} · ${esc(o.payment)}</small>
+      <ul>${o.items.map(i=>`<li>${i.qty}× ${esc(i.name)}</li>`).join('')}</ul>
+      <div class="line"><span>Total${o.discount_cents?` (cupom ${esc(o.coupon_code)})`:''}</span><b>${brl(o.total_cents)}</b></div>
+      <button class="btn sm" data-again="${o.id}">Pedir de novo</button></div>`).join(''):'<div class="empty">Você ainda não fez pedidos. Que tal começar agora?</div>'),'orders');
+    panel.querySelectorAll('[data-again]').forEach(b=>b.onclick=()=>{
+      const o=list.find(x=>x.id==b.dataset.again);let n=0,miss=0;
+      for(const i of o.items){const p=products.find(x=>x.id==i.id);if(!p||maxQty(p)<1){miss++;continue}cart[p.id]=Math.min(maxQty(p),(cart[p.id]||0)+i.qty);n++}
+      render();showCart(miss?(n?'Alguns itens não estão mais disponíveis e ficaram de fora.':'Esses itens não estão mais disponíveis.'):'');
+    });
+  }catch(x){if(me)panel.innerHTML=`<button class="close" aria-label="Fechar">×</button><h2>Meus pedidos</h2><div class="notice">${esc(x.message)}</div>`}
+}
+
+async function showCoupons(){
+  if(!me)return showAuth('login',showCoupons);
+  open(`<button class="close" aria-label="Fechar">×</button><h2>Meus cupons</h2><p class="hint">Carregando…</p>`,'coupons');
+  try{
+    const list=await capi('me/coupons');
+    const desc=c=>(c.discount_type==='percent'?c.discount_value+'% de desconto':brl(c.discount_value)+' de desconto')+(c.min_subtotal_cents?' · pedido mínimo '+brl(c.min_subtotal_cents):'');
+    open(`<button class="close" aria-label="Fechar">×</button><h2>Meus cupons</h2>`+(list.length?list.map(c=>`<div class="cpn ${c.active?'':'off'}"><div><b>${esc(c.code)}</b><small>${esc(desc(c))}</small>${c.used?`<small>Você já usou ${c.used}×</small>`:''}</div>${c.active?`<button class="btn sm" data-use="${esc(c.code)}">Usar</button>`:'<small>Indisponível</small>'}</div>`).join(''):'<div class="empty">Nenhum cupom disponível por enquanto. Fique de olho: o bar avisa quando tiver novidade!</div>'),'coupons');
+    panel.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{pendingCoupon=b.dataset.use;Object.keys(cart).length?showCheckout():showCart('Cupom '+pendingCoupon+' guardado: adicione bebidas e ele será aplicado no pedido.')});
+  }catch(x){if(me)panel.innerHTML=`<button class="close" aria-label="Fechar">×</button><h2>Meus cupons</h2><div class="notice">${esc(x.message)}</div>`}
+}
+
+function showFavs(){
+  if(!me)return showAuth('login',showFavs);
+  const list=products.filter(p=>favs.has(p.id));
+  open(`<button class="close" aria-label="Fechar">×</button><h2>Meus favoritos</h2>`+(list.length?list.map(rowHtml).join(''):'<div class="empty">Toque no ♡ ao lado de uma bebida para guardá-la aqui.</div>'),'favs');
+}
+async function toggleFav(id){
+  if(!me)return showAuth('login',()=>toggleFav(id),'Entre para salvar seus favoritos.');
+  const on=favs.has(id);on?favs.delete(id):favs.add(id);render();if(view==='favs')showFavs();
+  try{await capi('me/favorites/'+id,{method:on?'DELETE':'PUT'})}catch(x){on?favs.add(id):favs.delete(id);render();if(view==='favs')showFavs()}
+}
+document.addEventListener('click',e=>{const f=e.target.closest('[data-fav]');if(f)toggleFav(+f.dataset.fav)});
+
+function showSettings(){
+  if(!me)return showAuth('login',showSettings);
+  open(`<button class="close" aria-label="Fechar">×</button><h2>Configurações</h2>
+  <form id="sf2" novalidate>
+  <label for="sn">Nome</label><input id="sn" value="${esc(me.name)}" maxlength="80" autocomplete="name">
+  <label for="sz">Bairro</label><select id="sz"><option value="">Escolha o bairro</option>${cfg.zones.map(z=>`<option value="${esc(z.name)}" ${me.zone===z.name?'selected':''}>${esc(z.name)}</option>`).join('')}</select>
+  <label for="sa">Endereço com número e complemento</label><input id="sa" value="${esc(me.address)}" maxlength="200" autocomplete="street-address">
+  <label>Trocar senha <small style="color:var(--muted)">(deixe em branco para manter)</small></label>
+  <input id="sc" type="password" placeholder="Senha atual" autocomplete="current-password" style="margin-bottom:8px"><input id="sw" type="password" placeholder="Nova senha (mínimo 6)" autocomplete="new-password">
+  <div class="msg" id="sm" role="status"></div>
+  <button class="btn" style="width:100%" id="ssv">Salvar alterações</button></form>
+  <button class="linkbtn" id="sout" style="margin-top:14px;color:#ff9aa5">Sair da conta</button>`,'settings');
+  $('#sout').onclick=()=>{logoutLocal();closeSheet()};
+  $('#sf2').onsubmit=async e=>{
+    e.preventDefault();const m=$('#sm'),b=$('#ssv');m.className='msg';m.textContent='';b.disabled=true;
+    try{
+      const body={name:$('#sn').value,zone:$('#sz').value,address:$('#sa').value};
+      if($('#sw').value){body.newPassword=$('#sw').value;body.currentPassword=$('#sc').value}
+      me=await capi('me',{method:'PATCH',body:JSON.stringify(body)});updateNav();
+      m.className='msg ok';m.textContent='Dados salvos ✓';$('#sc').value=$('#sw').value='';
+    }catch(x){m.className='msg err';m.textContent=x.message}
+    b.disabled=false;
+  };
+}
+loadMe();
 
 /* PWA */
 let dp;

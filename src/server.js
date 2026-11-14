@@ -8,6 +8,7 @@ const caixa = require('./caixa');
 const func = require('./funcionamento');
 const cupons = require('./cupons');
 const estoque = require('./estoque');
+const clientes = require('./clientes');
 
 (function loadEnv() {
   const p = require('path').join(__dirname, '..', '.env');
@@ -28,6 +29,7 @@ if (!ADMIN_PASSWORD) { console.error('Faltou ADMIN_PASSWORD. Veja .env.example')
 
 const local = /localhost|127\.0\.0\.1/.test(DATABASE_URL);
 const pool = new Pool({ connectionString: DATABASE_URL, ssl: local ? false : { rejectUnauthorized: false } });
+const clienteAuth = clientes.createAuth(SECRET);
 const app = express();
 app.disable('x-powered-by');
 app.use(express.json({ limit: '5mb' }));
@@ -86,6 +88,7 @@ async function initDb() {
   await pool.query(caixa.SCHEMA);
   await pool.query(cupons.SCHEMA);
   await pool.query(estoque.SCHEMA);
+  await pool.query(clientes.SCHEMA);
   const { rows } = await pool.query('SELECT COUNT(*)::int AS n FROM products');
   const catalogo = require('./catalogo');
   if (rows[0].n === 0) await catalogo.load(pool);
@@ -159,6 +162,8 @@ app.get('/api/products', cached('products', 60e3, async () => {
 
 app.post('/api/orders', wrap(async (req, res) => {
   const b = req.body || {};
+  let customerId = clienteAuth.verify(req.headers.authorization);
+  if (customerId && !(await pool.query('SELECT 1 FROM customers WHERE id=$1', [customerId])).rowCount) customerId = null;
   const name = clip(b.name, 80), phone = clip(b.phone, 25), address = clip(b.address, 200), zoneName = clip(b.zone, 80);
   const payment = clip(b.payment, 20), changeFor = clip(b.change_for, 20), notes = clip(b.notes, 300);
   if (name.length < 2) return res.status(400).json({ error: 'Informe seu nome.' });
@@ -195,9 +200,9 @@ app.post('/api/orders', wrap(async (req, res) => {
   try {
     await client.query('BEGIN');
     r = await client.query(
-      `INSERT INTO orders (customer_name,phone,address,zone,payment,change_for,notes,items,subtotal_cents,fee_cents,total_cents,coupon_code,discount_cents)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`,
-      [name, phone, address, zone.name, payment, changeFor, notes, JSON.stringify(items), subtotal, fee, total, couponCode, discount]);
+      `INSERT INTO orders (customer_name,phone,address,zone,payment,change_for,notes,items,subtotal_cents,fee_cents,total_cents,coupon_code,discount_cents,customer_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
+      [name, phone, address, zone.name, payment, changeFor, notes, JSON.stringify(items), subtotal, fee, total, couponCode, discount, customerId]);
     const rs = await estoque.reserve(client, r.rows[0].id);
     if (rs.shortage) {
       await client.query('ROLLBACK');
@@ -430,6 +435,8 @@ app.patch('/api/admin/settings', auth, wrap(async (req, res) => {
 const setPaused = async (paused) => { await pool.query("INSERT INTO settings (key,value,updated_at) VALUES ('manual_closed',$1,now()) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value,updated_at=now()", [String(paused)]); memo.clear(); };
 
 /* Caixa: /api/admin/cash/* (já exige login) */
+app.use('/api/customers', clientes.createRouter({ pool, wrap, clip, SECRET }));
+app.use('/api/admin/customers', clientes.createAdminRouter({ pool, auth, wrap }));
 app.use('/api/admin/coupons', cupons.createAdminRouter({ pool, auth, wrap }));
 app.use('/api/admin/cash', caixa.createRouter({ pool, auth, wrap, clip, setPaused }));
 app.use('/api/admin/estoque', estoque.createRouter({ pool, auth, wrap, clip }));

@@ -148,14 +148,14 @@ async function kpis(){
 function shell(){
   $('#app').innerHTML=`<div class="page-head"><div><span class="eyebrow">GESTÃO DO BAR</span><h1>Painel do Bar do Cruzeiro</h1></div><div class="head-actions"><button id="snd"></button><button id="pause">…</button><button id="out">Sair</button></div></div>
   <div class="kpis" id="kpis"><div class="kpi"><span>Faturamento do mês</span><strong>…</strong></div><div class="kpi"><span>Hoje</span><strong>…</strong></div><div class="kpi"><span>Pedidos em andamento</span><strong>…</strong></div><div class="kpi"><span>Estoque acabando</span><strong>…</strong></div></div>
-  <div class="tabs">${[['dash','Resumo'],['orders','Pedidos'+(newCount?' ('+newCount+')':'')],['products','Produtos'],['estoque','Estoque'+(stockAlert?' ('+stockAlert+')':'')],['brands','Marcas'],['zones','Bairros'],['reports','Relatórios'],['coupons','Cupons'],['cash','Caixa'],['settings','Funcionamento']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('')}</div><div id="body"></div>`;
+  <div class="tabs">${[['dash','Resumo'],['orders','Pedidos'+(newCount?' ('+newCount+')':'')],['products','Produtos'],['estoque','Estoque'+(stockAlert?' ('+stockAlert+')':'')],['brands','Marcas'],['zones','Bairros'],['reports','Relatórios'],['coupons','Cupons'],['customers','Clientes'],['cash','Caixa'],['settings','Funcionamento']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('')}</div><div id="body"></div>`;
   document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;shell()});
   $('#pause').onclick=togglePause;sndLabel();
   $('#snd').onclick=()=>{try{localStorage.setItem('bdc_snd',snd()?'off':'on')}catch(e){}sndLabel()};
   $('#out').onclick=()=>{clearInterval(wtimer);wtimer=null;token='';sessionStorage.removeItem('bdc_admin');login()};
   clearInterval(timer);kpis();
   if(!wtimer){watch();watchStock();wtimer=setInterval(()=>{watch();if(++wt%4===0){watchStock();kpis()}},15000)}
-  ({dash,orders,products,estoque,brands,zones,reports,coupons,cash,settings})[tab]();
+  ({dash,orders,products,estoque,brands,zones,reports,coupons,customers,cash,settings})[tab]();
   refreshPause();
 }
 const ST=['novo','preparando','saiu','entregue','cancelado'];
@@ -282,8 +282,8 @@ async function zones(){
 async function coupons(){
   const list=await api('coupons');
   const desc=c=>c.discount_type==='percent'?c.discount_value+'% de desconto':brl(c.discount_value)+' de desconto';
-  $('#body').innerHTML=`<div class="box"><b>Novo cupom</b><div class="grid"><label class="muted">Código<input id="k-code" maxlength="40" placeholder="Ex.: BAR10" autocapitalize="characters"></label><label class="muted">Tipo de desconto<select id="k-type"><option value="percent">Porcentagem (%)</option><option value="fixed">Valor fixo (R$)</option></select></label><label class="muted"><span id="k-vl">Desconto (%)</span><input id="k-val" inputmode="decimal" placeholder="Ex.: 10"></label><label class="muted">Pedido mínimo (R$)<input id="k-min" inputmode="decimal" placeholder="0 = sem mínimo"></label></div><button class="p" id="k-add">Criar cupom</button><div class="err" id="e"></div><p class="muted">O cliente digita o código no fim do pedido. O desconto vale sobre o valor das bebidas, antes da entrega, e o mínimo também conta só as bebidas. Desativar só pausa o cupom; excluir apaga o código (os pedidos antigos continuam com o registro do desconto).</p></div>`+
-  (list.length?list.map(c=>`<div class="box ${c.active?'':'st-cancelado'}"><div class="top" style="align-items:center"><span><b>${esc(c.code)}</b><br><span class="muted">${desc(c)} · mínimo ${c.min_subtotal_cents?brl(c.min_subtotal_cents):'nenhum'}</span><br><span class="muted">Usado em ${c.uses} pedido(s) · ${brl(c.discounted)} em descontos</span></span><span style="display:flex;gap:10px;align-items:center"><label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ka="${c.id}" ${c.active?'checked':''} style="width:auto;min-height:0"> Ativo</label><button class="d" data-kd="${c.id}">Excluir</button></span></div><div class="err" data-ke="${c.id}"></div></div>`).join(''):'<p class="muted">Nenhum cupom cadastrado.</p>');
+  $('#body').innerHTML=`<div class="box"><b>Novo cupom</b><div class="grid"><label class="muted">Código<input id="k-code" maxlength="40" placeholder="Ex.: BAR10" autocapitalize="characters"></label><label class="muted">Tipo de desconto<select id="k-type"><option value="percent">Porcentagem (%)</option><option value="fixed">Valor fixo (R$)</option></select></label><label class="muted"><span id="k-vl">Desconto (%)</span><input id="k-val" inputmode="decimal" placeholder="Ex.: 10"></label><label class="muted">Pedido mínimo (R$)<input id="k-min" inputmode="decimal" placeholder="0 = sem mínimo"></label></div><label class="muted" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="k-pub" style="width:auto;min-height:0"> Mostrar para clientes logados (aparece em “Meus cupons” no site)</label><button class="p" id="k-add">Criar cupom</button><div class="err" id="e"></div><p class="muted">O cliente digita o código no fim do pedido. O desconto vale sobre o valor das bebidas, antes da entrega, e o mínimo também conta só as bebidas. Desativar só pausa o cupom; excluir apaga o código (os pedidos antigos continuam com o registro do desconto).</p></div>`+
+  (list.length?list.map(c=>`<div class="box ${c.active?'':'st-cancelado'}"><div class="top" style="align-items:center"><span><b>${esc(c.code)}</b><br><span class="muted">${desc(c)} · mínimo ${c.min_subtotal_cents?brl(c.min_subtotal_cents):'nenhum'}</span><br><span class="muted">Usado em ${c.uses} pedido(s) · ${brl(c.discounted)} em descontos</span></span><span style="display:flex;gap:10px;align-items:center"><label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-kp="${c.id}" ${c.public?'checked':''} style="width:auto;min-height:0"> Visível p/ clientes</label><label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ka="${c.id}" ${c.active?'checked':''} style="width:auto;min-height:0"> Ativo</label><button class="d" data-kd="${c.id}">Excluir</button></span></div><div class="err" data-ke="${c.id}"></div></div>`).join(''):'<p class="muted">Nenhum cupom cadastrado.</p>');
   $('#k-type').onchange=()=>{$('#k-vl').textContent=$('#k-type').value==='percent'?'Desconto (%)':'Desconto (R$)'};
   $('#k-add').onclick=async()=>{
     const e=$('#e');e.textContent='';
@@ -294,15 +294,35 @@ async function coupons(){
       else{value=toCents(raw);if(!value)throw new Error('Digite o desconto em reais. Ex.: 10,00')}
       const min=$('#k-min').value.trim()===''?0:toCents($('#k-min').value);
       if(min===null)throw new Error('Digite o pedido mínimo em reais. Ex.: 50,00');
-      await api('coupons',{method:'POST',body:JSON.stringify({code:$('#k-code').value,discountType:type,discountValue:value,minSubtotalCents:min})});coupons();
+      await api('coupons',{method:'POST',body:JSON.stringify({code:$('#k-code').value,discountType:type,discountValue:value,minSubtotalCents:min,public:$('#k-pub').checked})});coupons();
     }catch(x){e.textContent=x.message}
   };
   document.querySelectorAll('[data-ka]').forEach(c=>c.onchange=async()=>{
     try{await api('coupons/'+c.dataset.ka,{method:'PATCH',body:JSON.stringify({active:c.checked})});c.closest('.box').classList.toggle('st-cancelado',!c.checked)}
     catch(x){c.checked=!c.checked;document.querySelector('[data-ke="'+c.dataset.ka+'"]').textContent=x.message}});
+  document.querySelectorAll('[data-kp]').forEach(c=>c.onchange=async()=>{
+    try{await api('coupons/'+c.dataset.kp,{method:'PATCH',body:JSON.stringify({public:c.checked})})}
+    catch(x){c.checked=!c.checked;document.querySelector('[data-ke="'+c.dataset.kp+'"]').textContent=x.message}});
   document.querySelectorAll('[data-kd]').forEach(b=>b.onclick=async()=>{
     if(!confirm('Excluir este cupom?'))return;
     try{await api('coupons/'+b.dataset.kd,{method:'DELETE'});coupons()}catch(x){document.querySelector('[data-ke="'+b.dataset.kd+'"]').textContent=x.message}});
+}
+
+
+/* ---------- Clientes ---------- */
+async function customers(){
+  const list=await api('customers');
+  const fp=v=>{const d=String(v||'').replace(/\D/g,'');return d.length===11?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d};
+  $('#body').innerHTML=`<div class="panel-card"><h2>Clientes</h2><p class="muted" style="margin:6px 0 14px">Clientes que criaram conta no site. Cada R$ 1,00 em bebidas de pedido <b>entregue</b> vale 1 ponto. Se alguém esquecer a senha, defina uma nova aqui e passe pelo WhatsApp.</p>
+  <input id="cq" placeholder="Buscar por nome ou telefone" style="margin-bottom:12px">
+  ${list.length?`<div class="tw"><table class="otable"><thead><tr><th>Cliente</th><th>WhatsApp</th><th>Pedidos</th><th>Gasto</th><th>Pontos</th><th>Desde</th><th>Ação</th></tr></thead><tbody>${list.map(c=>`<tr data-cr="${esc((c.name+' '+c.phone).toLowerCase())}"><td><b>${esc(c.name)}</b>${c.zone?`<div class="muted">${esc(c.zone)}</div>`:''}</td><td><a href="https://wa.me/55${esc(c.phone)}">${esc(fp(c.phone))}</a></td><td>${c.orders}</td><td>${brl(c.spent)}</td><td><b>${c.points}</b></td><td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td><td><div class="oact"><div class="r"><button data-cp="${c.id}">Nova senha</button><button class="d" data-cd="${c.id}">Excluir</button></div></div></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nenhum cliente cadastrado ainda.</p>'}<div class="err" id="e"></div></div>`;
+  const q=$('#cq');if(q)q.oninput=()=>{const v=q.value.toLowerCase();document.querySelectorAll('[data-cr]').forEach(r=>r.style.display=r.dataset.cr.includes(v)?'':'none')};
+  document.querySelectorAll('[data-cp]').forEach(b=>b.onclick=async()=>{
+    const pw=prompt('Nova senha para este cliente (mínimo 6 caracteres):');if(!pw)return;
+    try{await api('customers/'+b.dataset.cp+'/password',{method:'POST',body:JSON.stringify({password:pw})});alert('Senha alterada. Avise o cliente pelo WhatsApp.')}catch(x){alert(x.message)}});
+  document.querySelectorAll('[data-cd]').forEach(b=>b.onclick=async()=>{
+    if(!confirm('Excluir esta conta? Os pedidos antigos continuam no painel.'))return;
+    try{await api('customers/'+b.dataset.cd,{method:'DELETE'});customers()}catch(x){$('#e').textContent=x.message}});
 }
 
 /* ---------- Relatórios ---------- */

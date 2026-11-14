@@ -60,3 +60,13 @@ Aba **Marcas** → no cartão da marca, escolha uma imagem (JPG, PNG ou WebP) e 
 - Essas duas listas ficam 60 s em memória no servidor (limpas na hora quando você altera algo no painel), o que reduz as consultas ao Neon.
 - Imagens por link (https://...) não passam pelo seu servidor: o navegador do cliente baixa direto do site de origem.
 - Fotos de produto são reduzidas a 800 px antes do envio; logos, a 256 px.
+
+## Conta de cliente (login, pedidos, favoritos, pontos)
+
+- O cliente cria conta com **WhatsApp + senha** (menu ☰ ou botão "Entrar" no topo da loja). As tabelas `customers` e `customer_favorites` são criadas sozinhas ao iniciar.
+- Menu da conta: Minha conta, Meus pedidos (com "Pedir de novo"), Meus cupons, Meus favoritos (♡ ao lado de cada bebida) e Configurações (nome, endereço, trocar senha).
+- **Pontos do clube:** 1 ponto a cada R$ 1,00 em bebidas (já com desconto, sem a entrega) de pedidos com status **entregue**.
+- **Meus cupons** mostra os cupons marcados como "Visível p/ clientes" (aba Cupons do painel) e os que o cliente já usou.
+- Painel → aba **Clientes**: lista com pedidos, gasto e pontos; "Nova senha" para quem esqueceu a senha; "Excluir" conta.
+- Pedidos feitos sem login continuam funcionando normalmente.
+- A sessão do cliente usa `SESSION_SECRET` (ou `ADMIN_PASSWORD`) para assinar o token: não troque esse valor depois de publicar, senão todos saem da conta.

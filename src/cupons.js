@@ -35,18 +35,18 @@ function createAdminRouter({ pool, auth, wrap }) {
   const router = Router();
   router.use(auth);
   router.get('/', wrap(async (req, res) => {
-    res.json((await pool.query(`SELECT c.id,c.code,c.discount_type,c.discount_value,c.min_subtotal_cents,c.active,c.created_at,
+    res.json((await pool.query(`SELECT c.id,c.code,c.discount_type,c.discount_value,c.min_subtotal_cents,c.active,c.public,c.created_at,
       (SELECT COUNT(*)::int FROM orders o WHERE o.coupon_code=c.code AND o.status<>'cancelado') AS uses,
       (SELECT COALESCE(SUM(o.discount_cents),0)::int FROM orders o WHERE o.coupon_code=c.code AND o.status<>'cancelado') AS discounted
       FROM coupons c ORDER BY c.created_at DESC, c.id DESC`)).rows);
   }));
   router.post('/', async (req, res) => {
     try {
-      const b = req.body || {}, code = normalizeCode(b.code), type = String(b.discountType || ''), value = Number(b.discountValue), min = Number(b.minSubtotalCents || 0);
+      const b = req.body || {}, code = normalizeCode(b.code), type = String(b.discountType || ''), value = Number(b.discountValue), min = Number(b.minSubtotalCents || 0), pub = b.public === true;
       if (!/^[A-Z0-9_-]{3,40}$/.test(code) || !['percent', 'fixed'].includes(type) || !Number.isInteger(value) || value < 1 ||
         (type === 'percent' && value > 100) || (type === 'fixed' && value > 2000000) || !Number.isInteger(min) || min < 0 || min > 2000000)
         return res.status(400).json({ error: 'Confira código (3 a 40 letras/números), desconto e pedido mínimo.' });
-      const r = await pool.query('INSERT INTO coupons (code,discount_type,discount_value,min_subtotal_cents) VALUES ($1,$2,$3,$4) RETURNING id', [code, type, value, min]);
+      const r = await pool.query('INSERT INTO coupons (code,discount_type,discount_value,min_subtotal_cents,public) VALUES ($1,$2,$3,$4,$5) RETURNING id', [code, type, value, min, pub]);
       res.status(201).json({ id: r.rows[0].id });
     } catch (e) {
       if (e.code === '23505') return res.status(409).json({ error: 'Já existe um cupom com esse código.' });
@@ -55,8 +55,9 @@ function createAdminRouter({ pool, auth, wrap }) {
   });
   router.patch('/:id', wrap(async (req, res) => {
     const id = Number(req.params.id);
-    if (typeof req.body?.active !== 'boolean') return res.status(400).json({ error: 'Estado do cupom inválido.' });
-    const r = Number.isInteger(id) ? await pool.query('UPDATE coupons SET active=$1 WHERE id=$2 RETURNING id', [req.body.active, id]) : { rowCount: 0 };
+    const { active, public: pub } = req.body || {};
+    if (typeof active !== 'boolean' && typeof pub !== 'boolean') return res.status(400).json({ error: 'Estado do cupom inválido.' });
+    const r = Number.isInteger(id) ? await pool.query('UPDATE coupons SET active=COALESCE($1,active), public=COALESCE($2,public) WHERE id=$3 RETURNING id', [typeof active === 'boolean' ? active : null, typeof pub === 'boolean' ? pub : null, id]) : { rowCount: 0 };
     if (!r.rowCount) return res.status(404).json({ error: 'Cupom não encontrado.' });
     res.json({ ok: true });
   }));
