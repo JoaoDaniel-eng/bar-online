@@ -18,7 +18,9 @@ Variáveis: `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `WHATSAPP_NUMBER
 (O `render.yaml` já está pronto.) O PWA só instala em HTTPS, que o Render já fornece.
 
 ## Painel `/admin`
-Pedidos (atualiza a cada 20 s e muda o status), produtos (preço, foto por URL, ativar/desativar) e bairros com taxa de entrega.
+- **Resumo**: faturamento, pedidos, ticket médio, vendas por dia, mais vendidos, pagamentos e bairros (hoje, 7 ou 30 dias; cancelados não contam).
+- **Pedidos**: aviso sonoro e contador na aba quando chega pedido novo, filtros por status, busca por nº/nome/telefone, botão para avançar o status, impressão da comanda e link do WhatsApp.
+- **Produtos** (com busca, fotos e ativar/desativar), **Marcas** e **Bairros** com taxa de entrega.
 
 ## Catálogo
 Os produtos e preços ficam em `src/catalogo.js`. Em banco novo eles são cadastrados sozinhos na primeira execução.

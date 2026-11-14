@@ -136,6 +136,34 @@ app.post('/api/admin/login', (req, res) => {
   res.json({ token: sign(Date.now() + 12 * 3600e3) });
 });
 
+/* Resumo de vendas (fuso de Brasília). Pedidos cancelados não entram no faturamento. */
+const TZ = 'America/Sao_Paulo';
+app.get('/api/admin/stats', auth, wrap(async (req, res) => {
+  const days = Math.min(90, Math.max(1, parseInt(req.query.days, 10) || 7));
+  const rows = (await pool.query(
+    `SELECT to_char(created_at AT TIME ZONE '${TZ}','YYYY-MM-DD') AS day, payment, zone, items, total_cents, status
+     FROM orders WHERE (created_at AT TIME ZONE '${TZ}') >= date_trunc('day', now() AT TIME ZONE '${TZ}') - (($1::int - 1) * interval '1 day')`, [days])).rows;
+  const valid = rows.filter(o => o.status !== 'cancelado');
+  const byDay = {};
+  for (let i = days - 1; i >= 0; i--) byDay[new Date(Date.now() - i * 864e5).toLocaleDateString('en-CA', { timeZone: TZ })] = { total: 0, n: 0 };
+  const top = {}, pay = {}, zone = {};
+  let revenue = 0;
+  for (const o of valid) {
+    revenue += o.total_cents;
+    if (byDay[o.day]) { byDay[o.day].total += o.total_cents; byDay[o.day].n++; }
+    pay[o.payment] = (pay[o.payment] || 0) + 1;
+    zone[o.zone] = (zone[o.zone] || 0) + 1;
+    for (const i of o.items) { const t = top[i.name] || (top[i.name] = { name: i.name, qty: 0, total: 0 }); t.qty += i.qty; t.total += i.qty * i.price_cents; }
+  }
+  const sortArr = (obj, k) => Object.entries(obj).map(([name, n]) => ({ name, n })).sort((a, b) => b.n - a.n).slice(0, k);
+  res.json({
+    days, revenue, orders: valid.length, cancelled: rows.length - valid.length,
+    avg: valid.length ? Math.round(revenue / valid.length) : 0,
+    byDay: Object.entries(byDay).map(([day, v]) => ({ day, ...v })),
+    top: Object.values(top).sort((a, b) => b.qty - a.qty).slice(0, 8),
+    payments: sortArr(pay, 5), zones: sortArr(zone, 5)
+  });
+}));
 app.get('/api/admin/orders', auth, wrap(async (req, res) => {
   res.json((await pool.query('SELECT * FROM orders ORDER BY id DESC LIMIT 200')).rows);
 }));
