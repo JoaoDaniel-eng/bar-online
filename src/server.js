@@ -447,6 +447,21 @@ app.use('/api/admin/cash', caixa.createRouter({ pool, auth, wrap, clip, setPause
 app.use('/api/admin/estoque', estoque.createRouter({ pool, auth, wrap, clip }));
 app.use('/api/admin/backup', backup.createRouter({ pool, auth, wrap, clip, onRestored: () => { memo.clear(); imgCache.clear(); imgBytes = 0; } }));
 
+/* Versão do deploy: no Render vem do commit; fora dele, de um hash do conteúdo do site. Entra no sw.js para o celular detectar atualização. */
+const BUILD = (() => {
+  if (process.env.RENDER_GIT_COMMIT) return String(process.env.RENDER_GIT_COMMIT).slice(0, 10);
+  const h = crypto.createHash('sha1');
+  const walk = d => { for (const f of fs.readdirSync(d).sort()) { const p = path.join(d, f);
+    if (fs.statSync(p).isDirectory()) { if (!['produtos', 'brands'].includes(f)) walk(p); }
+    else if (/\.(html|js|css|webmanifest)$/.test(f)) h.update(f).update(fs.readFileSync(p)); } };
+  try { walk(path.join(__dirname, 'public')); } catch (e) {}
+  return h.digest('hex').slice(0, 10);
+})();
+app.get('/sw.js', (req, res) => fs.readFile(path.join(__dirname, 'public', 'sw.js'), 'utf8', (e, t) => {
+  if (e) return res.status(404).end();
+  res.set({ 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache' }).send(t.replace(/__BUILD__/g, BUILD));
+}));
+
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], setHeaders: (res, f) => { if (/\.(png|jpe?g|webp|svg)$/i.test(f)) res.set('Cache-Control', 'public, max-age=86400'); } }));
 app.get('/healthz', (req, res) => res.send('ok'));
 

@@ -230,6 +230,10 @@ html[data-theme=light] .bgart{opacity:.24}
 @media(max-width:420px){.nav{gap:6px;padding:0 10px}.who{padding:0 10px;font-size:13px;min-width:0}.mypedido{padding:0 12px;gap:8px;font-size:14px}}
 @media(max-width:400px){.mypedido .mp-l{display:none}.mypedido .mp-t{display:inline-block}.mypedido .mp-t::first-letter{text-transform:uppercase}}
 @media(max-width:340px){.brand{display:none}}
+/* aviso de atualização (fica acima da barra do carrinho quando ela aparece) */
+.upd{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:95;max-width:520px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:16px;background:var(--panel);border:1px solid var(--blue);box-shadow:0 12px 40px rgba(0,0,0,.55);color:var(--foam);font:600 14.5px/1.3 Poppins,system-ui,sans-serif;animation:up .22s ease-out}
+.upd .btn{min-height:42px;padding:0 18px;white-space:nowrap;flex:none}
+body:has(#bar:not([hidden])) .upd{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
 </style>
 </head>
 <body>
@@ -691,7 +695,30 @@ $('#install').onclick=async()=>{
   dp.prompt();const c=await dp.userChoice;dp=null;if(c.outcome==='accepted')$('#install').hidden=true;
 };
 if(isIOS&&!isInstalled())$('#iosHint').hidden=false;
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'));
+/* Aviso de nova versão: depois de um deploy, aparece embaixo "Há uma nova atualização disponível" com o botão Atualizar. */
+let wantReload=false;
+function showUpdate(reg){
+  if($('#upd'))return;
+  const d=document.createElement('div');d.id='upd';d.className='upd';d.setAttribute('role','status');
+  d.innerHTML='<span>Há uma nova atualização disponível.</span><button type="button" class="btn">Atualizar</button>';
+  const b=d.querySelector('button');
+  b.onclick=()=>{b.disabled=true;b.textContent='Atualizando…';wantReload=true;
+    if(reg.waiting)reg.waiting.postMessage('SKIP_WAITING');else location.reload();
+    setTimeout(()=>location.reload(),4000)};   // garantia: se o navegador não avisar a troca, recarrega mesmo assim
+  document.body.append(d);
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(wantReload)location.reload()});
+  addEventListener('load',async()=>{
+    let reg;try{reg=await navigator.serviceWorker.register('/sw.js')}catch(e){return}
+    const check=()=>{if(reg.waiting&&navigator.serviceWorker.controller)showUpdate(reg)};
+    check();
+    reg.addEventListener('updatefound',()=>{const w=reg.installing;if(w)w.addEventListener('statechange',()=>{if(w.state==='installed')check()})});
+    const look=()=>reg.update().catch(()=>{});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')look()});
+    setInterval(look,10*60e3);
+  });
+}
 
 /* Idade */
 const gate=$('#gate');

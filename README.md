@@ -81,3 +81,8 @@ Aba **Marcas** → no cartão da marca, escolha uma imagem (JPG, PNG ou WebP) e 
 - No Android/Chrome e no computador (Chrome/Edge), um toque abre a janela de instalação do navegador. Se o navegador ainda não liberou a instalação, o botão mostra o passo a passo.
 - No iPhone o Safari não permite instalar por botão: o toque mostra o passo a passo (Compartilhar → Adicionar à Tela de Início). Dentro do Instagram/WhatsApp ele orienta a abrir no navegador.
 - A instalação só funciona em HTTPS (o Render já fornece). Em telas estreitas o botão vira só o ícone, e "Meu pedido" vira "Pedido" para tudo caber.
+
+## Aviso de nova versão (depois de um deploy)
+- A cada deploy o servidor gera um número de versão (no Render, o commit; fora dele, um hash do conteúdo do site) e coloca no `sw.js`. Quem está com a loja aberta ou instalada no celular vê embaixo "Há uma nova atualização disponível" com o botão **Atualizar**. Ao tocar, a loja recarrega já na versão nova; o carrinho é mantido.
+- O celular confere a versão ao abrir, ao voltar para a loja e a cada 10 minutos. Quem só abriu a loja pela primeira vez não vê o aviso.
+- Não precisa mais mexer no número de versão do `sw.js` (`__BUILD__` é trocado sozinho pelo servidor em `src/server.js`).
