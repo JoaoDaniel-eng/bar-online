@@ -52,7 +52,7 @@ const SCHEMA = `
     created_by TEXT NOT NULL DEFAULT 'Painel', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
   CREATE INDEX IF NOT EXISTS cash_movements_session_idx ON cash_movements (session_id, created_at);`;
 
-function createRouter({ pool, auth, wrap, clip }) {
+function createRouter({ pool, auth, wrap, clip, setPaused }) {
   const router = Router();
   router.use(auth);
 
@@ -85,6 +85,7 @@ function createRouter({ pool, auth, wrap, clip }) {
       if (e.code === '23505') return res.status(409).json({ error: 'Já existe um caixa aberto. Feche-o antes de abrir outro.' });
       throw e;
     }
+    if (req.body?.resumeOrders === true && setPaused) await setPaused(false);
     res.status(201).json(await buildReport(pool, created.rows[0]));
   }));
 
@@ -124,6 +125,7 @@ function createRouter({ pool, auth, wrap, clip }) {
       await client.query('UPDATE cash_sessions SET closed_at=$2,closed_by=$3,counted_cents=$4,expected_cents=$5,difference_cents=$6,close_notes=$7,summary=$8 WHERE id=$1',
         [session.id, now, clip(req.body?.by, 60) || 'Painel', counted, summary.expectedCashCents, diff, clip(req.body?.notes, 500), JSON.stringify(summary)]);
       await client.query('COMMIT');
+      if (req.body?.pauseOrders === true && setPaused) await setPaused(true);
       const closed = (await pool.query('SELECT * FROM cash_sessions WHERE id=$1', [session.id])).rows[0];
       res.json(await buildReport(pool, closed));
     } catch (e) {

@@ -40,7 +40,16 @@ a{color:#7ea6ff}
 .ok{color:#6be08a}.over{color:var(--amber)}.short{color:#ff8a8a}
 .result{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px;border-radius:10px;border:1px solid currentColor;margin:10px 0;font-weight:600}
 table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08)}th{color:var(--muted);font-weight:500}
+.rb{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:3px 0;font-size:14px}.rb i{display:block;height:12px;background:var(--blue);border-radius:6px;min-width:3px}.rb.pk i{background:var(--amber)}.rb small{grid-column:2/4;color:var(--muted);margin-top:-4px}.badge{margin-left:6px;padding:1px 8px;border-radius:99px;font-size:12px;border:1px solid var(--amber);color:var(--amber)}
 .tw{overflow-x:auto}.small{min-height:34px;padding:0 10px;font-size:14px}
+.qty{font-size:34px;font-weight:700;line-height:1.1;margin:8px 0 6px}.qty span{font-size:16px;color:var(--muted);margin-left:6px;font-weight:500}
+.meter{height:10px;border-radius:99px;background:#000;border:1px solid var(--line);overflow:hidden;margin-bottom:4px}.meter i{display:block;height:100%;border-radius:99px}
+.m-good{background:#6be08a}.m-low{background:var(--amber)}.m-empty{background:#ff8a8a}
+.tag.st-good{border-color:#6be08a;color:#6be08a}.tag.st-empty{border-color:#ff8a8a;color:#ff8a8a}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.ov{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.78);display:grid;place-items:center;padding:16px}
+.mo{width:100%;max-width:420px;max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:10px}.mo label{display:grid;gap:4px}
+.cnt{max-height:55vh;overflow:auto;border:1px solid var(--line);border-radius:10px;margin:10px 0}.cnt .row{align-items:center;padding:6px 10px}.cnt input{width:96px;min-height:38px;text-align:right}.cnt h4{padding:8px 10px;background:#000;color:var(--amber);position:sticky;top:0}
 @media print{body *{display:none}}
 </style>
 </head>
@@ -51,7 +60,7 @@ table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}th,td{text
 const $=s=>document.querySelector(s);
 const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-let token=sessionStorage.getItem('bdc_admin')||'',tab='dash',timer,wtimer,lastMax=null,newCount=0,ofilter='ativos',oq='';
+let token=sessionStorage.getItem('bdc_admin')||'',tab='dash',timer,wtimer,lastMax=null,newCount=0,stockAlert=0,wt=0,ofilter='ativos',oq='';
 async function api(path,opt={}){
   const r=await fetch('/api/admin/'+path,{...opt,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}});
   const j=await r.json().catch(()=>({}));
@@ -65,12 +74,14 @@ function login(){
   $('#go').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};
 }
 function shell(){
-  $('#app').innerHTML=`<div class="tabs">${[['dash','Resumo'],['orders','Pedidos'+(newCount?' ('+newCount+')':'')],['products','Produtos'],['brands','Marcas'],['zones','Bairros'],['cash','Caixa']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('')}<button id="out" style="margin-left:auto">Sair</button></div><div id="body"></div>`;
+  $('#app').innerHTML=`<div class="tabs">${[['dash','Resumo'],['orders','Pedidos'+(newCount?' ('+newCount+')':'')],['products','Produtos'],['estoque','Estoque'+(stockAlert?' ('+stockAlert+')':'')],['brands','Marcas'],['zones','Bairros'],['reports','Relatórios'],['coupons','Cupons'],['cash','Caixa'],['settings','Funcionamento']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('')}<button id="pause" style="margin-left:auto">…</button><button id="out">Sair</button></div><div id="body"></div>`;
   document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;shell()});
+  $('#pause').onclick=togglePause;
   $('#out').onclick=()=>{clearInterval(wtimer);wtimer=null;token='';sessionStorage.removeItem('bdc_admin');login()};
   clearInterval(timer);
-  if(!wtimer){watch();wtimer=setInterval(watch,15000)}
-  ({dash,orders,products,brands,zones,cash})[tab]();
+  if(!wtimer){watch();watchStock();wtimer=setInterval(()=>{watch();if(++wt%4===0)watchStock()},15000)}
+  ({dash,orders,products,estoque,brands,zones,reports,coupons,cash,settings})[tab]();
+  refreshPause();
 }
 const ST=['novo','preparando','saiu','entregue','cancelado'];
 function beep(){try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.2;o.start();o.stop(a.currentTime+.5)}catch(e){}}
@@ -96,7 +107,7 @@ ${esc(o.address)} (${esc(o.zone)})
 ${o.items.map(i=>i.qty+'x '+esc(i.name)).join('\n')}
 --------------------------------
 ${o.notes?'Obs.: '+esc(o.notes)+'\n':''}Pagamento: ${esc(o.payment)}${o.change_for?' (troco p/ '+esc(o.change_for)+')':''}
-Entrega: ${brl(o.fee_cents)}
+${o.discount_cents?'Cupom '+esc(o.coupon_code)+': -'+brl(o.discount_cents)+'\n':''}Entrega: ${brl(o.fee_cents)}
 TOTAL: ${brl(o.total_cents)}</pre>`);w.document.close();w.focus();w.print()}
 async function orders(){
   document.title='Painel — Bar On-line do Cruzeiro';
@@ -110,7 +121,7 @@ async function orders(){
     <div class="muted">${esc(o.address)} — ${esc(o.zone)} · <a href="https://wa.me/55${esc(o.phone.replace(/\D/g,'').replace(/^55/,''))}">${esc(o.phone)}</a></div>
     <ul style="margin:8px 0 8px 18px">${o.items.map(i=>`<li>${i.qty}x ${esc(i.name)}</li>`).join('')}</ul>
     ${o.notes?`<div class="muted">Obs.: ${esc(o.notes)}</div>`:''}
-    <div class="top" style="align-items:center"><span>${o.payment}${o.change_for?' · troco p/ '+esc(o.change_for):''} · entrega ${brl(o.fee_cents)} · <b>${brl(o.total_cents)}</b></span>
+    <div class="top" style="align-items:center"><span>${o.payment}${o.change_for?' · troco p/ '+esc(o.change_for):''} ${o.discount_cents?' · cupom '+esc(o.coupon_code)+' −'+brl(o.discount_cents):''} · entrega ${brl(o.fee_cents)} · <b>${brl(o.total_cents)}</b></span>
     <span style="display:flex;gap:6px;flex-wrap:wrap">${nx&&nx!=='cancelado'?`<button class="p" data-n="${o.id}" data-s="${nx}">→ ${nx}</button>`:''}<button data-pr="${o.id}">Imprimir</button><select data-o="${o.id}" style="width:auto">${ST.map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}</select></span></div></div>`}).join(''):'<p class="muted">Nenhum pedido nesta visão.</p>');
     document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{ofilter=b.dataset.f;load()});
     $('#oq').oninput=e=>{oq=e.target.value;clearTimeout(load.t);load.t=setTimeout(()=>load().then(()=>{const i=$('#oq');i.focus();i.setSelectionRange(99,99)}),300)};
@@ -173,10 +184,121 @@ async function brands(){
   document.querySelectorAll('[data-b]').forEach(b=>b.onclick=async()=>{await api('brands/'+b.dataset.b,{method:'DELETE'});brands()});
 }
 async function zones(){
-  const j=await fetch('/api/config').then(r=>r.json());
-  $('#body').innerHTML=`<div class="box"><b>Bairro e taxa de entrega</b><div class="grid"><input id="zn" placeholder="Bairro"><input id="zf" placeholder="Taxa (ex.: 6,00)"></div><button class="p" id="za">Salvar bairro</button><div class="err" id="e"></div><p class="muted">Se o bairro já existir, a taxa é atualizada.</p></div>`+j.zones.map(z=>`<div class="box top" style="align-items:center"><span>${esc(z.name)} — ${brl(z.fee_cents)}</span><button class="d" data-z="${z.id}">Excluir</button></div>`).join('');
+  const list=await api('zones');
+  const moneyIn=c=>(c/100).toFixed(2).replace('.',',');
+  $('#body').innerHTML=`<div class="box"><b>Novo bairro</b><div class="grid"><input id="zn" placeholder="Bairro"><input id="zf" inputmode="decimal" placeholder="Taxa (ex.: 6,00)"></div><button class="p" id="za">Adicionar bairro</button><div class="err" id="e"></div><p class="muted">Bairro desativado some do site, mas continua aqui para você reativar depois. Dá para mudar o nome e a taxa direto na lista.</p></div>`+
+  (list.length?list.map(z=>`<div class="box ${z.active?'':'st-cancelado'}" data-zr="${z.id}"><div class="grid" style="grid-template-columns:2fr 1fr;align-items:center"><input data-zf="name" value="${esc(z.name)}" aria-label="Nome do bairro"><input data-zf="fee" inputmode="decimal" value="${moneyIn(z.fee_cents)}" aria-label="Taxa de ${esc(z.name)} (R$)"></div><div class="top" style="align-items:center;margin-top:8px"><label class="muted"><input type="checkbox" data-zf="active" ${z.active?'checked':''} style="width:auto;min-height:0"> Ativo (aparece no site)</label><span style="display:flex;gap:6px"><button class="p" data-zs>Salvar</button><button class="d" data-zd>Excluir</button></span></div><div class="err" data-ze></div></div>`).join(''):'<p class="muted">Nenhum bairro cadastrado.</p>');
   $('#za').onclick=async()=>{try{await api('zones',{method:'POST',body:JSON.stringify({name:$('#zn').value,fee:$('#zf').value})});zones()}catch(e){$('#e').textContent=e.message}};
-  document.querySelectorAll('[data-z]').forEach(b=>b.onclick=async()=>{await api('zones/'+b.dataset.z,{method:'DELETE'});zones()});
+  document.querySelectorAll('[data-zr]').forEach(b=>{
+    const f=k=>b.querySelector('[data-zf="'+k+'"]'),er=b.querySelector('[data-ze]');
+    b.querySelector('[data-zs]').onclick=async e=>{try{await api('zones/'+b.dataset.zr,{method:'PATCH',body:JSON.stringify({name:f('name').value,fee:f('fee').value,active:f('active').checked})});zones()}catch(x){er.textContent=x.message}};
+    b.querySelector('[data-zd]').onclick=async()=>{if(!confirm('Excluir este bairro da lista de entrega?'))return;try{await api('zones/'+b.dataset.zr,{method:'DELETE'});zones()}catch(x){er.textContent=x.message}};
+  });
+}
+
+
+
+/* ---------- Cupons ---------- */
+async function coupons(){
+  const list=await api('coupons');
+  const desc=c=>c.discount_type==='percent'?c.discount_value+'% de desconto':brl(c.discount_value)+' de desconto';
+  $('#body').innerHTML=`<div class="box"><b>Novo cupom</b><div class="grid"><label class="muted">Código<input id="k-code" maxlength="40" placeholder="Ex.: BAR10" autocapitalize="characters"></label><label class="muted">Tipo de desconto<select id="k-type"><option value="percent">Porcentagem (%)</option><option value="fixed">Valor fixo (R$)</option></select></label><label class="muted"><span id="k-vl">Desconto (%)</span><input id="k-val" inputmode="decimal" placeholder="Ex.: 10"></label><label class="muted">Pedido mínimo (R$)<input id="k-min" inputmode="decimal" placeholder="0 = sem mínimo"></label></div><button class="p" id="k-add">Criar cupom</button><div class="err" id="e"></div><p class="muted">O cliente digita o código no fim do pedido. O desconto vale sobre o valor das bebidas, antes da entrega, e o mínimo também conta só as bebidas. Desativar só pausa o cupom; excluir apaga o código (os pedidos antigos continuam com o registro do desconto).</p></div>`+
+  (list.length?list.map(c=>`<div class="box ${c.active?'':'st-cancelado'}"><div class="top" style="align-items:center"><span><b>${esc(c.code)}</b><br><span class="muted">${desc(c)} · mínimo ${c.min_subtotal_cents?brl(c.min_subtotal_cents):'nenhum'}</span><br><span class="muted">Usado em ${c.uses} pedido(s) · ${brl(c.discounted)} em descontos</span></span><span style="display:flex;gap:10px;align-items:center"><label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ka="${c.id}" ${c.active?'checked':''} style="width:auto;min-height:0"> Ativo</label><button class="d" data-kd="${c.id}">Excluir</button></span></div><div class="err" data-ke="${c.id}"></div></div>`).join(''):'<p class="muted">Nenhum cupom cadastrado.</p>');
+  $('#k-type').onchange=()=>{$('#k-vl').textContent=$('#k-type').value==='percent'?'Desconto (%)':'Desconto (R$)'};
+  $('#k-add').onclick=async()=>{
+    const e=$('#e');e.textContent='';
+    try{
+      const type=$('#k-type').value,raw=$('#k-val').value.trim();
+      let value;
+      if(type==='percent'){value=/^\d{1,3}$/.test(raw)?+raw:null;if(!value||value>100)throw new Error('Na porcentagem, digite um número de 1 a 100.')}
+      else{value=toCents(raw);if(!value)throw new Error('Digite o desconto em reais. Ex.: 10,00')}
+      const min=$('#k-min').value.trim()===''?0:toCents($('#k-min').value);
+      if(min===null)throw new Error('Digite o pedido mínimo em reais. Ex.: 50,00');
+      await api('coupons',{method:'POST',body:JSON.stringify({code:$('#k-code').value,discountType:type,discountValue:value,minSubtotalCents:min})});coupons();
+    }catch(x){e.textContent=x.message}
+  };
+  document.querySelectorAll('[data-ka]').forEach(c=>c.onchange=async()=>{
+    try{await api('coupons/'+c.dataset.ka,{method:'PATCH',body:JSON.stringify({active:c.checked})});c.closest('.box').classList.toggle('st-cancelado',!c.checked)}
+    catch(x){c.checked=!c.checked;document.querySelector('[data-ke="'+c.dataset.ka+'"]').textContent=x.message}});
+  document.querySelectorAll('[data-kd]').forEach(b=>b.onclick=async()=>{
+    if(!confirm('Excluir este cupom?'))return;
+    try{await api('coupons/'+b.dataset.kd,{method:'DELETE'});coupons()}catch(x){document.querySelector('[data-ke="'+b.dataset.kd+'"]').textContent=x.message}});
+}
+
+/* ---------- Relatórios ---------- */
+const WD=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const PAYN={dinheiro:'Dinheiro',pix:'Pix',cartao:'Cartão'};
+function repRows(items,key,label,sub,peakKey){
+  if(!items.length)return '<p class="muted">Sem pedidos no período.</p>';
+  const mx=Math.max(1,...items.map(x=>x[key])),pk=items.reduce((a,x)=>x[key]>a[key]?x:a,items[0]);
+  return items.map(x=>`<div class="rb ${x===pk&&peakKey?'pk':''}"><span>${label(x)}</span><div><i style="width:${Math.max(3,x[key]/mx*100)}%"></i></div><b>${sub(x)}${x===pk&&peakKey?`<span class="badge">${peakKey}</span>`:''}</b></div>`).join('');
+}
+async function reports(days){
+  days=days||+(sessionStorage.getItem('bdc_rdays')||30);sessionStorage.setItem('bdc_rdays',days);
+  const [d,per]=await Promise.all([api('reports?days='+days),api('reports/periods')]);
+  const s=d.summary;
+  // Madrugada junto da noite: a lista de horas começa às 6h e termina às 5h.
+  const hours=[...d.hours].sort((a,b)=>((a.hour+18)%24)-((b.hour+18)%24));
+  const pkH=hours.length?hours.reduce((a,h)=>h.orders>a.orders?h:a,hours[0]):null;
+  const pkD=d.weekdays.length?d.weekdays.reduce((a,x)=>x.orders>a.orders?x:a,d.weekdays[0]):null;
+  const mxDay=Math.max(1,...d.daily.map(x=>x.revenue));
+  $('#body').innerHTML=`<div class="box"><b>Resumo por período</b><div class="cards" style="margin:10px 0 0">${per.map(p=>`<div class="card"><span class="muted">${esc(p.label)}</span><b>${brl(p.revenue)}</b><span class="muted">${p.orders} pedido(s) · ticket ${brl(p.average_ticket)}</span></div>`).join('')}</div></div>
+  <div class="chips">${[[7,'Últimos 7 dias'],[30,'Últimos 30 dias'],[90,'Últimos 90 dias']].map(p=>`<button data-rd="${p[0]}" class="${p[0]===days?'on':''}">${p[1]}</button>`).join('')}</div>
+  <div class="cards"><div class="card"><span class="muted">Faturamento no período</span><b>${brl(s.revenue)}</b></div><div class="card"><span class="muted">Pedidos</span><b>${s.orders}</b></div><div class="card"><span class="muted">Ticket médio</span><b>${brl(s.average_ticket)}</b></div><div class="card"><span class="muted">Taxas de entrega</span><b>${brl(s.fees)}</b></div><div class="card"><span class="muted">Descontos de cupons</span><b>${brl(s.discounts)}</b><span class="muted">${s.coupon_orders} pedido(s) com cupom</span></div></div>
+  <div class="box"><b>Faturamento por dia</b><div style="margin-top:8px">${d.daily.some(x=>x.orders)?d.daily.map(x=>`<div class="rb"><span>${x.day}</span><div><i style="width:${x.revenue?Math.max(3,x.revenue/mxDay*100):0}%"></i></div><b>${brl(x.revenue)}</b><small>${x.orders} pedido(s)</small></div>`).join(''):'<p class="muted">Sem vendas no período.</p>'}</div></div>
+  <div class="box"><b>Mais vendidos</b>${d.top.length?d.top.map((t,i)=>`<div class="row"><span>${i+1}. ${esc(t.name)}</span><span>${t.quantity} un · ${brl(t.revenue)}</span></div>`).join(''):'<p class="muted">Ainda não há itens vendidos no período.</p>'}</div>
+  <div class="box"><b>Horários de pico</b>${pkH?`<p class="muted">Pedidos por hora (horário de Brasília). Maior movimento: <b>${pkH.hour}h às ${(pkH.hour+1)%24}h</b>, com ${pkH.orders} pedido(s) — bom momento para reforçar a equipe e o estoque gelado.</p>`:''}${repRows(hours,'orders',h=>String(h.hour).padStart(2,'0')+'h',h=>h.orders+' · '+brl(h.revenue),'pico')}</div>
+  <div class="box"><b>Dias da semana</b>${pkD?`<p class="muted">Dia mais movimentado: <b>${WD[pkD.dow]}</b> (${pkD.orders} pedido(s)).</p>`:''}${repRows(d.weekdays,'orders',x=>WD[x.dow].slice(0,3),x=>x.orders+' · '+brl(x.revenue),'mais movimentado')}</div>
+  <div class="box"><b>Formas de pagamento</b>${d.payments.length?d.payments.map(x=>`<div class="row"><span>${esc(PAYN[x.payment]||x.payment)}</span><span>${x.orders} pedido(s) · ${brl(x.revenue)}</span></div>`).join(''):'<p class="muted">Sem pedidos no período.</p>'}</div>`;
+  document.querySelectorAll('[data-rd]').forEach(b=>b.onclick=()=>reports(+b.dataset.rd));
+}
+
+/* ---------- Funcionamento ---------- */
+let paused=false;
+async function refreshPause(){
+  try{
+    const [s,st]=await Promise.all([api('settings'),fetch('/api/store',{cache:'no-store'}).then(r=>r.json())]);
+    paused=s.manual_closed==='true';const b=$('#pause');if(!b)return;
+    b.textContent=paused?'▶ Reabrir pedidos':'Ⅱ Pausar pedidos';b.className=paused?'p':'d';
+    b.title=st.open?'Aberto agora':(st.message||'Fechado');
+    let el=$('#sbar');if(!el){el=document.createElement('div');el.id='sbar';el.className='muted';el.style.margin='-6px 0 12px';$('#body').before(el)}
+    el.textContent=(st.open?'🟢 Aberto agora para pedidos':'🔴 Fechado para pedidos')+(st.open?'':' — '+st.message);
+  }catch(e){}
+}
+async function togglePause(){
+  try{await api('settings',{method:'PATCH',body:JSON.stringify({manual_closed:String(!paused)})});await refreshPause()}catch(e){alert(e.message)}
+}
+async function settings(){
+  const s=await api('settings');
+  const days=(s.opening_days||'').split(',');
+  const DN=[['1','Seg'],['2','Ter'],['3','Qua'],['4','Qui'],['5','Sex'],['6','Sáb'],['0','Dom']];
+  const reais=v=>Number(v)>0?String(Number(v)).replace('.',','):'';
+  $('#body').innerHTML=`<div class="box"><b>Funcionamento do bar</b>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+   <label class="muted">Nome do bar<input id="s-name" maxlength="120" value="${esc(s.store_name)}"></label>
+   <label class="muted">WhatsApp (DDI + DDD + número)<input id="s-wa" inputmode="numeric" placeholder="5524999999999" value="${esc(s.whatsapp_number)}"></label>
+   <label class="muted">Abre às<input id="s-open" type="time" value="${esc(s.opening_time)}"></label>
+   <label class="muted">Fecha às<input id="s-close" type="time" value="${esc(s.closing_time)}"></label>
+   <label class="muted">Previsão mínima (min)<input id="s-emin" inputmode="numeric" placeholder="Ex.: 30" value="${esc(s.estimated_minutes_min)}"></label>
+   <label class="muted">Previsão máxima (min)<input id="s-emax" inputmode="numeric" placeholder="Ex.: 50" value="${esc(s.estimated_minutes_max)}"></label>
+   <label class="muted">Frete grátis a partir de (R$)<input id="s-free" inputmode="decimal" placeholder="0 = desligado" value="${esc(reais(s.free_delivery_min))}"></label>
+  </div>
+  <p class="muted">Se o horário de fechar for menor que o de abrir (ex.: abre 18:00, fecha 02:00), o bar funciona até de madrugada. Abre e fecha no mesmo horário = 24 horas. A madrugada conta como parte do dia em que o bar abriu.</p>
+  <div class="chips" id="s-days" style="margin-top:10px">${DN.map(d=>`<button type="button" data-d="${d[0]}" class="${days.includes(d[0])?'on':''}">${d[1]}</button>`).join('')}</div>
+  <label class="muted" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="s-man" ${s.manual_closed==='true'?'checked':''} style="width:auto;min-height:0"> Fechar manualmente (o site para de aceitar pedidos)</label>
+  <p class="muted">Frete grátis vale só sobre o valor das bebidas. A previsão aparece para o cliente no site e na confirmação do pedido. Fora do horário ou com o fechamento manual ligado, o site mostra o aviso de fechado e não envia pedidos.</p>
+  <button class="p" id="s-save">Salvar configurações</button><div class="err" id="e" role="status"></div></div>`;
+  document.querySelectorAll('#s-days [data-d]').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+  $('#s-save').onclick=async()=>{
+    const e=$('#e');e.style.color='';e.textContent='Salvando…';
+    try{
+      const body={store_name:$('#s-name').value,whatsapp_number:$('#s-wa').value.replace(/\D/g,''),opening_time:$('#s-open').value,closing_time:$('#s-close').value,
+        estimated_minutes_min:$('#s-emin').value,estimated_minutes_max:$('#s-emax').value,free_delivery_min:$('#s-free').value,
+        opening_days:[...document.querySelectorAll('#s-days .on')].map(b=>b.dataset.d).join(','),manual_closed:String($('#s-man').checked)};
+      await api('settings',{method:'PATCH',body:JSON.stringify(body)});
+      e.style.color='#6be08a';e.textContent='Configurações salvas ✓';refreshPause();
+    }catch(x){e.textContent=x.message}
+  };
 }
 
 /* ---------- Caixa ---------- */
@@ -237,11 +359,11 @@ async function cash(){
   let html='';
   if(cashLast&&!cur.session)html+=cashReport(cashLast,'Caixa fechado agora');
   if(!cur.session){
-    html+=`<div class="box"><b>🔒 Caixa fechado</b><p class="muted">Conte o dinheiro da gaveta e informe como troco inicial para abrir o caixa.</p><div class="grid"><label class="muted">Troco inicial (R$)<input id="c-open" inputmode="decimal" placeholder="Ex.: 100,00"></label><label class="muted">Observação (opcional)<input id="c-onotes" maxlength="500" placeholder="Ex.: turno da noite"></label>${by}</div><button class="p" id="c-open-go">Abrir caixa</button><div class="err" id="c-err"></div></div>`;
+    html+=`<div class="box"><b>🔒 Caixa fechado</b><p class="muted">Conte o dinheiro da gaveta e informe como troco inicial para abrir o caixa.</p><div class="grid"><label class="muted">Troco inicial (R$)<input id="c-open" inputmode="decimal" placeholder="Ex.: 100,00"></label><label class="muted">Observação (opcional)<input id="c-onotes" maxlength="500" placeholder="Ex.: turno da noite"></label>${by}</div><label class="muted" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="c-resume" style="width:auto;min-height:0"> Reabrir os pedidos do site ao abrir o caixa</label><button class="p" id="c-open-go">Abrir caixa</button><div class="err" id="c-err"></div></div>`;
   }else{
     html+=`<div class="box"><b>🔓 Caixa aberto</b><p class="muted">Desde ${when(cur.session.opened_at)} por ${esc(cur.session.opened_by)}. Os valores contam os pedidos não cancelados desde a abertura.</p>${cashSummary(cur.summary)}</div>
     <div class="box"><b>Lançar movimento</b><div class="grid"><label class="muted">Tipo<select id="c-kind"><option value="sangria">Retirada (sangria)</option><option value="despesa">Despesa paga do caixa</option><option value="suprimento">Entrada de dinheiro</option></select></label><label class="muted">Valor (R$)<input id="c-amt" inputmode="decimal" placeholder="Ex.: 20,00"></label><label class="muted">Motivo<input id="c-reason" maxlength="200" placeholder="Ex.: compra de gelo"></label>${by}</div><button class="p" id="c-move-go">Lançar</button><div class="err" id="c-err"></div>${cashMoves(cur.movements,true)}</div>
-    <div class="box"><b>Fechar caixa</b><p class="muted">Conte todo o dinheiro da gaveta e informe o valor. O sistema compara com o esperado (<b>${brl(cur.summary.expectedCashCents)}</b>).</p><div class="grid"><label class="muted">Dinheiro contado (R$)<input id="c-count" inputmode="decimal" placeholder="Ex.: 250,00"></label><label class="muted">Observação (opcional)<input id="c-cnotes" maxlength="500" placeholder="Ex.: faltou troco"></label></div><button class="d" id="c-close-go">Fechar caixa</button><div class="err" id="c-err2"></div></div>`;
+    <div class="box"><b>Fechar caixa</b><p class="muted">Conte todo o dinheiro da gaveta e informe o valor. O sistema compara com o esperado (<b>${brl(cur.summary.expectedCashCents)}</b>).</p><div class="grid"><label class="muted">Dinheiro contado (R$)<input id="c-count" inputmode="decimal" placeholder="Ex.: 250,00"></label><label class="muted">Observação (opcional)<input id="c-cnotes" maxlength="500" placeholder="Ex.: faltou troco"></label></div><label class="muted" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="c-pause" style="width:auto;min-height:0"> Pausar os pedidos do site ao fechar o caixa</label><button class="d" id="c-close-go">Fechar caixa</button><div class="err" id="c-err2"></div></div>`;
   }
   html+=`<h2 style="font-size:18px;margin:16px 0 8px">Caixas anteriores</h2>`+(hist.length?`<div class="box tw"><table><thead><tr><th>Aberto</th><th>Fechado</th><th>Responsável</th><th>Esperado</th><th>Contado</th><th>Resultado</th><th></th></tr></thead><tbody>${hist.map(h=>`<tr><td>${when(h.opened_at)}</td><td>${when(h.closed_at)}</td><td>${esc(h.closed_by)}</td><td>${brl(h.expected_cents)}</td><td>${brl(h.counted_cents)}</td><td class="${diffCls(h.difference_cents)}">${diffTxt(h.difference_cents)}</td><td><button class="small" data-cview="${h.id}">Ver</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nenhum caixa fechado ainda.</p>');
   $('#body').innerHTML='<div id="c-detail"></div>'+html;
@@ -250,20 +372,94 @@ async function cash(){
   const post=(path,body,m='POST')=>api('cash/'+path,{method:m,body:JSON.stringify(body)});
   if($('#c-open-go'))$('#c-open-go').onclick=run('#c-err',async()=>{
     const c=toCents($('#c-open').value);if(c===null)throw new Error('Digite o troco inicial em reais. Ex.: 100,00');
-    cashLast=null;await post('open',{openingCents:c,notes:$('#c-onotes').value,by:by_()});cash()});
+    cashLast=null;await post('open',{openingCents:c,notes:$('#c-onotes').value,by:by_(),resumeOrders:$('#c-resume').checked});await cash();refreshPause()});
   if($('#c-move-go'))$('#c-move-go').onclick=run('#c-err',async()=>{
     const c=toCents($('#c-amt').value);if(!c)throw new Error('Digite um valor maior que zero. Ex.: 20,00');
     await post('movements',{kind:$('#c-kind').value,amountCents:c,reason:$('#c-reason').value,by:by_()});cash()});
   if($('#c-close-go'))$('#c-close-go').onclick=run('#c-err2',async()=>{
     const c=toCents($('#c-count').value);if(c===null)throw new Error('Digite o dinheiro contado em reais. Ex.: 250,00');
     if(!confirm('Fechar o caixa agora? Depois de fechado ele não pode ser alterado.'))return;
-    cashLast=await post('close',{countedCents:c,notes:$('#c-cnotes').value,by:(sessionStorage.getItem('bdc_by')||'')});cash()});
+    cashLast=await post('close',{countedCents:c,notes:$('#c-cnotes').value,by:(sessionStorage.getItem('bdc_by')||''),pauseOrders:$('#c-pause').checked});await cash();refreshPause()});
   document.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=run('',async()=>{
     if(!confirm('Desfazer este lançamento?'))return;await api('cash/movements/'+b.dataset.cdel,{method:'DELETE'});cash()}));
   document.querySelectorAll('[data-cview]').forEach(b=>b.onclick=run('',async()=>{
     const r=await api('cash/sessions/'+b.dataset.cview);$('#c-detail').innerHTML=cashReport(r,'Detalhes do caixa');
     document.querySelectorAll('[data-cprint]').forEach(x=>x.onclick=()=>printCash(r));scrollTo({top:0,behavior:'smooth'})}));
   document.querySelectorAll('[data-cprint]').forEach(x=>x.onclick=()=>printCash(cashLast));
+}
+
+/* ---------- Estoque ---------- */
+async function watchStock(){try{const s=await api('estoque/summary');stockAlert=s.low+s.empty;const t=document.querySelector('[data-t=estoque]');if(t)t.textContent='Estoque'+(stockAlert?' ('+stockAlert+')':'')}catch(e){}}
+const UL={un:'un.',kg:'kg',g:'g',l:'L',ml:'ml'},MV={entrada:'Compra',saida:'Retirada',perda:'Perda',conferencia:'Correção de saldo',ajuste:'Ajuste',venda:'Baixa de pedido',devolucao:'Devolução'},MS={entrada:'+',devolucao:'+',saida:'−',perda:'−',venda:'−'};
+const nf=(n,max=3)=>Number(n||0).toLocaleString('pt-BR',{maximumFractionDigits:max});
+let sFilter={q:'',st:'all'};
+function stStatus(i){const q=i.quantity,cap=Math.max(i.capacity||0,q),m=i.minimum||0,p=cap>0?Math.max(0,Math.min(100,q/cap*100)):0;
+  if(q<=0)return{k:'empty',l:'Esgotado',p:0};if((m>0&&q<=m)||p<=20)return{k:'low',l:'Está acabando',p};return{k:'good',l:'Estoque bom',p}}
+/* Janela simples: campos + botão; erros do servidor aparecem dentro dela. */
+function ask(title,fields,ok,submit){
+  const d=document.createElement('div');d.className='ov';
+  d.innerHTML=`<form class="mo"><b>${esc(title)}</b>${fields.map(f=>f.note?`<p class="muted">${esc(f.note)}</p>`:`<label class="muted">${esc(f.label)}${f.options?`<select name="${f.name}">${f.options.map(o=>`<option value="${esc(o[0])}" ${o[0]===f.value?'selected':''}>${esc(o[1])}</option>`).join('')}</select>`:`<input name="${f.name}" inputmode="${f.mode||'text'}" placeholder="${esc(f.ph||'')}" value="${esc(f.value??'')}" autocomplete="off" ${f.disabled?'disabled':''}>`}</label>`).join('')}<div class="err"></div><div class="top"><button type="button" data-x>Cancelar</button><button class="p">${esc(ok)}</button></div></form>`;
+  document.body.appendChild(d);
+  const close=()=>d.remove(),f=d.querySelector('form'),er=d.querySelector('.err');
+  d.onclick=e=>{if(e.target===d)close()};d.querySelector('[data-x]').onclick=close;
+  const first=f.querySelector('input:not([disabled]),select');if(first)first.focus();
+  f.onsubmit=async e=>{e.preventDefault();const btn=f.querySelector('button.p');btn.disabled=true;er.textContent='';
+    try{const v={};new FormData(f).forEach((x,k)=>v[k]=x);await submit(v);close()}catch(x){er.textContent=x.message;btn.disabled=false}};
+}
+async function estoque(){
+  document.title='Painel — Bar On-line do Cruzeiro';
+  const data=await api('estoque'),items=data.items;
+  const st=items.map(stStatus),low=st.filter(s=>s.k==='low').length,empty=st.filter(s=>s.k==='empty').length,spent=items.reduce((n,i)=>n+i.purchase_total_cents,0);
+  stockAlert=low+empty;const tb=document.querySelector('[data-t=estoque]');if(tb)tb.textContent='Estoque'+(stockAlert?' ('+stockAlert+')':'');
+  const reload=()=>estoque();
+  const cardHtml=i=>{const s=stStatus(i),u=UL[i.unit]||i.unit;return `<div class="box" data-i="${i.id}">
+    <div class="top"><div><b>${esc(i.name)}</b><div class="muted">${i.product_id?'Ligado ao cardápio: '+esc(i.product_name||i.name)+' — cada pedido desconta sozinho':'Controle manual (os pedidos não descontam)'}</div></div><span class="tag st-${s.k}">${s.l}</span></div>
+    <div class="qty">${nf(i.quantity)}<span>${u}</span></div>
+    <div class="meter"><i class="m-${s.k}" style="width:${s.p}%"></i></div><div class="muted">${Math.round(s.p)}% da quantidade cheia (${nf(Math.max(i.capacity,i.quantity))} ${u})</div>
+    <div class="muted" style="margin-top:6px">Gasto em compras: <b>${brl(i.purchase_total_cents)}</b>${i.minimum>0?' · Avisar com <b>'+nf(i.minimum)+' '+u+'</b>':''}</div>
+    <div class="acts"><button class="p small" data-act="buy">＋ Adicionar compra</button><button class="small" data-act="count">Corrigir saldo</button><button class="small" data-act="out">Retirar / perda</button><button class="small" data-act="edit">Editar</button><button class="small d" data-act="del">Excluir</button></div></div>`};
+  const list=()=>{const q=sFilter.q.trim().toLowerCase(),r=items.filter(i=>(!q||i.name.toLowerCase().includes(q))&&(sFilter.st==='all'||stStatus(i).k===sFilter.st));
+    $('#stl').innerHTML=!items.length?'<p class="muted">Nenhum item cadastrado. Use o formulário acima, ou “Contar vários produtos de uma vez”, para começar.</p>':r.length?r.map(cardHtml).join(''):'<p class="muted">Nenhum item encontrado com esse filtro.</p>'};
+  const mv=data.movements;
+  $('#body').innerHTML=`<div class="cards"><div class="card"><span class="muted">Itens cadastrados</span><b>${items.length}</b></div><div class="card"><span class="muted">Estoque acabando</span><b>${low}</b></div><div class="card"><span class="muted">Esgotados</span><b>${empty}</b></div><div class="card"><span class="muted">Gasto em compras</span><b>${brl(spent)}</b></div></div>
+  <div class="box"><b>＋ Cadastrar item</b>
+    <div class="grid"><label class="muted">Produto<input id="sn" list="sn-l" placeholder="Ex.: Heineken Latão" autocomplete="off"><datalist id="sn-l">${data.products.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist></label>
+    <label class="muted">Unidade<select id="su"><option value="un">Unidades</option><option value="kg">Quilos (kg)</option><option value="g">Gramas (g)</option><option value="l">Litros (L)</option><option value="ml">Mililitros (ml)</option></select></label>
+    <label class="muted">Quantidade agora<input id="sq0" inputmode="decimal" placeholder="Ex.: 24"></label>
+    <label class="muted">Valor gasto (R$)<input id="sp" inputmode="decimal" placeholder="Opcional"></label>
+    <label class="muted">Alertar quando restar<input id="sm" inputmode="decimal" placeholder="Opcional"></label></div>
+    <button class="p" id="sadd">Cadastrar</button><button id="sbulk" style="margin-left:8px">Contar vários produtos de uma vez</button><div class="err" id="e"></div>
+    <p class="muted">Se o nome for igual ao de um produto do cardápio, o estoque fica <b>ligado</b> a ele: cada pedido desconta as unidades na hora, o cancelamento devolve, o site avisa “Os 3 últimos!” e mostra “Esgotado” quando zera. Produto sem item aqui vende sem limite. Itens que não são vendidos (gelo, copos…) ficam só com controle manual.</p></div>
+  <div id="sbk"></div>
+  <div class="box"><b>O que tenho no estoque?</b><p class="muted">O medidor mostra quanto resta da quantidade cheia. Amarelo: está acabando. Vermelho: esgotado. Use “Editar” para ajustar o alerta e reiniciar o medidor.</p>
+  <div class="grid" style="grid-template-columns:2fr 1fr"><input id="sf" type="search" placeholder="Buscar item…" value="${esc(sFilter.q)}"><select id="ss">${[['all','Todos'],['low','Acabando'],['empty','Esgotados'],['good','Estoque bom']].map(o=>`<option value="${o[0]}" ${o[0]===sFilter.st?'selected':''}>${o[1]}</option>`).join('')}</select></div></div>
+  <div id="stl"></div>
+  <div class="box"><b>Movimentações recentes</b>${mv.length?`<div class="tw"><table><thead><tr><th>Data</th><th>Item</th><th>Tipo</th><th>Quantidade</th><th>Detalhe</th></tr></thead><tbody>${mv.slice(0,40).map(m=>`<tr><td>${new Date(m.created_at).toLocaleString('pt-BR')}</td><td>${esc(m.item_name)}</td><td>${MV[m.kind]||m.kind}</td><td>${MS[m.kind]||''}${nf(m.quantity)} ${UL[m.item_unit]||''}</td><td>${esc(m.reason||'—')}${m.kind==='entrada'&&m.total_cents?' · '+brl(m.total_cents):''}${m.supplier?' · '+esc(m.supplier):''}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">As movimentações aparecerão aqui.</p>'}</div>`;
+  list();
+  $('#sf').oninput=e=>{sFilter.q=e.target.value;list()};$('#ss').onchange=e=>{sFilter.st=e.target.value;list()};
+  $('#su').onchange=()=>{$('#sq0').placeholder=$('#su').value==='un'?'Ex.: 24':'Ex.: 2,5'};
+  $('#sadd').onclick=async()=>{const b=$('#sadd');b.disabled=true;$('#e').textContent='';
+    try{const r=await api('estoque/items',{method:'POST',body:JSON.stringify({name:$('#sn').value,unit:$('#su').value,quantity:$('#sq0').value,purchaseTotal:$('#sp').value,minimumQuantity:$('#sm').value})});
+      alert(r.linked?'Cadastrado e ligado ao produto do cardápio: cada pedido vai descontar sozinho.':'Cadastrado. Não há produto do cardápio com esse nome, então o controle é manual.');reload()}
+    catch(e){$('#e').textContent=e.message;b.disabled=false}};
+  $('#sbulk').onclick=()=>{
+    if($('#sbk').innerHTML){$('#sbk').innerHTML='';return}
+    if(!data.products.length){$('#e').textContent='Todos os produtos do cardápio já têm item de estoque.';return}
+    const cats=[...new Set(data.products.map(p=>p.category))];
+    $('#sbk').innerHTML=`<div class="box"><b>Contagem de vários produtos</b><p class="muted">Digite quantas unidades você tem de cada produto. <b>Deixe em branco</b> os que não quer controlar: eles continuam vendendo sem limite. Atenção: produto com quantidade <b>0</b> aparece como “Esgotado” no site.</p><div class="cnt">${cats.map(c=>`<h4>${esc(c)}</h4>`+data.products.filter(p=>p.category===c).map(p=>`<div class="row"><span>${esc(p.name)}</span><input data-bp="${p.id}" inputmode="numeric" placeholder="—" aria-label="Quantidade de ${esc(p.name)}"></div>`).join('')).join('')}</div><button class="p" id="bsave">Salvar contagem</button><button id="bcancel" style="margin-left:8px">Fechar</button><div class="err" id="be"></div></div>`;
+    $('#bcancel').onclick=()=>{$('#sbk').innerHTML=''};
+    $('#bsave').onclick=async()=>{const rows=[...document.querySelectorAll('[data-bp]')].filter(i=>i.value.trim()!=='').map(i=>({productId:+i.dataset.bp,quantity:i.value}));
+      try{const r=await api('estoque/bulk',{method:'POST',body:JSON.stringify({rows})});alert(r.created+' item(ns) cadastrado(s).');reload()}catch(e){$('#be').textContent=e.message}};
+  };
+  const byId=id=>items.find(i=>String(i.id)===String(id));
+  $('#stl').onclick=e=>{const btn=e.target.closest('[data-act]');if(!btn)return;const item=byId(btn.closest('[data-i]').dataset.i);if(!item)return;
+    const u=UL[item.unit]||item.unit,mode=item.unit==='un'?'numeric':'decimal',mvPost=(type,v)=>api('estoque/movements',{method:'POST',body:JSON.stringify({itemId:item.id,type,...v})}).then(reload);
+    ({buy:()=>ask('Adicionar compra — '+item.name,[{name:'quantity',label:'Quantidade comprada ('+u+')',mode,ph:'Ex.: 24'},{name:'totalPaid',label:'Valor pago no total (R$)',mode:'decimal',ph:'Opcional'},{name:'supplier',label:'Fornecedor',ph:'Opcional'}],'Adicionar',v=>mvPost('entrada',v)),
+      count:()=>ask('Corrigir saldo — '+item.name,[{note:'Informe quanto existe de verdade agora. A diferença entra no histórico como conferência, sem contar como compra.'},{name:'quantity',label:'Quantidade atual ('+u+')',mode,value:item.quantity},{name:'reason',label:'Observação',ph:'Opcional'}],'Corrigir',v=>mvPost('conferencia',v)),
+      out:()=>ask('Retirar / perda — '+item.name,[{name:'type',label:'O que aconteceu',options:[['saida','Retirada (uso ou consumo do bar)'],['perda','Perda (quebra, vencimento)']]},{name:'quantity',label:'Quantidade ('+u+')',mode},{name:'reason',label:'Observação',ph:'Opcional'}],'Registrar',v=>{const t=v.type;delete v.type;return mvPost(t,v)}),
+      edit:()=>ask('Editar — '+item.name,[{name:'name',label:'Nome',value:item.name},{name:'unit',label:'Unidade',value:item.unit,options:item.product_id?[['un','Unidades (ligado ao cardápio)']]:[['un','Unidades'],['kg','Quilos (kg)'],['g','Gramas (g)'],['l','Litros (L)'],['ml','Mililitros (ml)']]},{name:'minimum',label:'Alertar quando restar ('+u+')',mode:'decimal',value:item.minimum||''},{name:'capacity',label:'Quantidade cheia = 100% do medidor',mode:'decimal',value:Math.max(item.capacity,item.quantity)},{note:'Trocar kg↔g ou L↔ml converte o saldo automaticamente.'}],'Salvar',v=>api('estoque/items/'+item.id,{method:'PATCH',body:JSON.stringify(v)}).then(reload)),
+      del:async()=>{if(!confirm('Excluir “'+item.name+'” do estoque? O histórico fica guardado e o produto volta a vender sem controle.'))return;try{await api('estoque/items/'+item.id,{method:'DELETE'});reload()}catch(x){alert(x.message)}}
+    })[btn.dataset.act]()};
 }
 token?shell():login();
 </script>

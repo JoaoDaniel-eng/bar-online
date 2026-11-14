@@ -50,6 +50,11 @@ main{max-width:720px;margin:0 auto;padding:0 16px}
 .step button{width:44px;height:44px;font-size:22px;color:var(--blue-soft)}
 .step span{min-width:22px;text-align:center;font-weight:600}
 .empty{padding:40px 0;text-align:center;color:var(--muted)}
+.add[disabled],.step button[disabled]{opacity:.3;box-shadow:none;cursor:not-allowed}
+.soldout{flex:none;padding:6px 14px;border-radius:999px;border:1px solid #ff8a8a;color:#ff8a8a;font:italic 700 16px 'Barlow Condensed',sans-serif}
+.row.out .tile,.row.out .info{opacity:.5}
+.lowtag{display:block;margin-top:2px;color:var(--amber);font-weight:600;font-size:14px}
+.notice{margin:8px 0 12px;padding:10px 12px;border:1px solid #ff8a8a;border-radius:12px;color:#ff8a8a}
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:60;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,#000 35%)}
 .bar button{width:100%;max-width:720px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;min-height:56px;padding:0 22px;border-radius:999px;background:var(--amber);color:#1a1100;font-weight:600;box-shadow:0 0 28px rgba(255,176,32,.35)}
 .bar[hidden]{display:none}
@@ -79,6 +84,8 @@ textarea{min-height:70px;resize:vertical}
 .ok{text-align:center;padding:10px 0}
 .ok .disp{font-size:36px;color:var(--ok)}
 .hint{font-size:14px;color:var(--muted);margin-top:10px}
+.sb{margin:10px 16px 0;padding:10px 14px;border-radius:12px;border:1px solid var(--ok);color:var(--ok);font-size:15px;text-align:center}
+.sb.closed{border-color:var(--danger);color:var(--danger)}
 footer{max-width:720px;margin:36px auto 0;padding:0 16px 28px;color:var(--muted);font-size:14px;text-align:center}
 .admin-access{display:inline-flex;align-items:center;justify-content:center;min-height:42px;margin-top:14px;padding:0 18px;border:1px solid var(--line);border-radius:999px;color:var(--blue-soft);font-weight:600;text-decoration:none;background:var(--panel);transition:background .2s,border-color .2s}
 .admin-access:hover,.admin-access:focus-visible{background:rgba(45,107,255,.16);border-color:var(--blue-soft)}
@@ -117,6 +124,7 @@ footer{max-width:720px;margin:36px auto 0;padding:0 16px 28px;color:var(--muted)
   <b>Bar On-line do Cruzeiro</b>
   <button class="btn ghost" id="install" hidden>Instalar app</button>
 </header>
+<div class="sb" id="sb" role="status" hidden></div>
 
 <section class="hero">
   <img src="/icons/logo.jpg" alt="Logo Bar On-line do Cruzeiro: chope gelado e Cristo Redentor" width="340" height="340">
@@ -145,7 +153,7 @@ const $=s=>document.querySelector(s);
 const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-let cfg={zones:[],whatsapp:'',name:''},products=[],cart=store.get('bdc_cart',{}),cat='';
+let st=null,cfg={zones:[],whatsapp:'',name:''},products=[],cart=store.get('bdc_cart',{}),cat='';
 
 const glyph=c=>{
   const k=/^Cerveja/.test(c)?'b':/^Vinho/.test(c)?'w':/Conveni/.test(c)?'i':/Energ|Drinks|Refri/.test(c)?'c':'x';
@@ -162,11 +170,20 @@ function tileInner(p){
   const b=(cfg.brands||[]).find(z=>norm(z.name)===norm(p.brand));
   return b?badge(b,true):glyph(p.category);
 }
+/* Estoque: p.stock = unidades disponíveis (null = sem controle, vende sem limite) */
+const stockOf=p=>p.stock==null?null:Math.max(0,Math.floor(Number(p.stock)));
+const maxQty=p=>{const s=stockOf(p);return s===null?99:Math.min(99,s)};
+function fixCart(){for(const id of Object.keys(cart)){const p=products.find(x=>x.id==id);if(!p){delete cart[id];continue}const m=maxQty(p);if(m<1)delete cart[id];else if(cart[id]>m)cart[id]=m}}
+async function refreshProducts(){
+  try{const n=await fetch('/api/products',{cache:'no-store'}).then(r=>r.json());if(!Array.isArray(n))return;
+    const sig=a=>a.map(p=>p.id+':'+p.stock).join();const changed=sig(n)!==sig(products);
+    products=n;store.set('bdc_cache',{c:cfg,p:products});fixCart();if(changed)render()}catch(e){}
+}
 function rowHtml(p){
-  const q=cart[p.id]||0;
-  return `<div class="row"><div class="tile">${tileInner(p)}</div>
-  <div class="info"><h3>${esc(p.name)}</h3>${p.description?`<small>${esc(p.description)}</small>`:''}<div class="price">${brl(p.price_cents)}</div></div>
-  ${q?`<div class="step"><button data-m="${p.id}" aria-label="Tirar um ${esc(p.name)}">−</button><span>${q}</span><button data-a="${p.id}" aria-label="Adicionar mais um ${esc(p.name)}">+</button></div>`:`<button class="add" data-a="${p.id}" aria-label="Adicionar ${esc(p.name)}">+</button>`}</div>`;
+  const q=cart[p.id]||0,s=stockOf(p),out=s===0,low=s!==null&&s>0&&s<=3;
+  return `<div class="row${out?' out':''}"><div class="tile">${tileInner(p)}</div>
+  <div class="info"><h3>${esc(p.name)}</h3>${p.description?`<small>${esc(p.description)}</small>`:''}<div class="price">${brl(p.price_cents)}</div>${low?`<span class="lowtag">🔥 ${s===1?'Último!':'Os '+s+' últimos!'}</span>`:''}</div>
+  ${out?'<span class="soldout">Esgotado</span>':q?`<div class="step"><button data-m="${p.id}" aria-label="Tirar um ${esc(p.name)}">−</button><span>${q}</span><button data-a="${p.id}" aria-label="Adicionar mais um ${esc(p.name)}" ${q>=maxQty(p)?'disabled':''}>+</button></div>`:`<button class="add" data-a="${p.id}" aria-label="Adicionar ${esc(p.name)}">+</button>`}</div>`;
 }
 function render(){
   const cats=[...new Set(products.map(p=>p.category))];
@@ -210,7 +227,7 @@ document.addEventListener('click',e=>{
 });
 function totals(){let n=0,s=0;for(const p of products){const q=cart[p.id]||0;n+=q;s+=q*p.price_cents}return{n,s}}
 function bar(){const t=totals();$('#bar').hidden=!t.n;$('#bc').textContent=t.n+(t.n===1?' item':' itens');$('#bt').textContent=brl(t.s);store.set('bdc_cart',cart)}
-function change(id,d){const q=Math.max(0,Math.min(99,(cart[id]||0)+d));if(q)cart[id]=q;else delete cart[id];render();if($('#sheet').classList.contains('open')&&view==='cart')showCart()}
+function change(id,d){const p=products.find(x=>x.id==id),q=Math.max(0,Math.min(p?maxQty(p):99,(cart[id]||0)+d));if(q)cart[id]=q;else delete cart[id];render();if($('#sheet').classList.contains('open')&&view==='cart')showCart()}
 
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-a]'),m=e.target.closest('[data-m]');
@@ -224,16 +241,16 @@ function open(html,v){view=v;panel.innerHTML=html;sheet.classList.add('open');do
 function closeSheet(){sheet.classList.remove('open');document.body.style.overflow=''}
 sheet.addEventListener('click',e=>{if(e.target===sheet||e.target.closest('.close'))closeSheet()});
 
-function showCart(){
-  const t=totals(),items=products.filter(p=>cart[p.id]);
-  if(!items.length){open(`<button class="close" aria-label="Fechar">×</button><h2>Carrinho</h2><div class="empty">Seu carrinho está vazio. Toque no + para adicionar bebidas.</div>`,'cart');return}
-  open(`<button class="close" aria-label="Fechar">×</button><h2>Seu carrinho</h2>
-  ${items.map(p=>`<div class="line"><span>${esc(p.name)}</span><div class="step"><button data-m="${p.id}" aria-label="Tirar um">−</button><span>${cart[p.id]}</span><button data-a="${p.id}" aria-label="Adicionar mais um">+</button></div></div>`).join('')}
+function showCart(note){
+  const t=totals(),items=products.filter(p=>cart[p.id]),nt=note?`<div class="notice">${esc(note)}</div>`:'';
+  if(!items.length){open(`<button class="close" aria-label="Fechar">×</button><h2>Carrinho</h2>${nt}<div class="empty">Seu carrinho está vazio. Toque no + para adicionar bebidas.</div>`,'cart');return}
+  open(`<button class="close" aria-label="Fechar">×</button><h2>Seu carrinho</h2>${nt}
+  ${items.map(p=>`<div class="line"><span>${esc(p.name)}</span><div class="step"><button data-m="${p.id}" aria-label="Tirar um">−</button><span>${cart[p.id]}</span><button data-a="${p.id}" aria-label="Adicionar mais um" ${cart[p.id]>=maxQty(p)?'disabled':''}>+</button></div></div>`).join('')}
   <div class="line"><span>Subtotal</span><b>${brl(t.s)}</b></div>
   <button class="btn" style="width:100%;margin-top:12px" id="toCheckout">Continuar para entrega</button>`,'cart');
   $('#toCheckout').onclick=showCheckout;
 }
-$('#openCart').onclick=showCart;
+$('#openCart').onclick=()=>showCart();
 
 function showCheckout(){
   const d=store.get('bdc_cust',{}),t=totals();
@@ -247,32 +264,54 @@ function showCheckout(){
   <div class="pay"><label><input type="radio" name="pay" value="pix"><span>Pix</span></label><label><input type="radio" name="pay" value="cartao"><span>Cartão</span></label><label><input type="radio" name="pay" value="dinheiro"><span>Dinheiro</span></label></div>
   <div id="chg" hidden><label for="c">Troco para quanto?</label><input id="c" inputmode="decimal" placeholder="Ex.: 100"></div>
   <label for="o">Observações (opcional)</label><textarea id="o"></textarea>
+  <label for="cp">Cupom de desconto (opcional)</label>
+  <div style="display:flex;gap:8px"><input id="cp" maxlength="40" autocapitalize="characters" autocomplete="off" placeholder="Digite seu cupom"><button type="button" class="btn ghost" id="cpb" style="white-space:nowrap">Aplicar</button></div>
+  <div class="hint" id="cpm" role="status" style="margin-top:6px"></div>
   <div class="line" style="margin-top:12px"><span>Subtotal</span><b>${brl(t.s)}</b></div>
+  <div class="line" id="dl" hidden><span>Desconto <span id="dc"></span></span><b id="dv"></b></div>
   <div class="line"><span>Entrega</span><b id="fee">—</b></div>
+  <p class="hint" id="fh" style="margin:2px 0 6px"></p>
   <div class="line"><span>Total</span><span class="tot" id="tot">${brl(t.s)}</span></div>
   <div class="err" id="err" role="alert"></div>
   <button class="btn" style="width:100%" id="send">Enviar pedido</button></form>`,'co');
-  const upd=()=>{const o=$('#z').selectedOptions[0],f=o&&o.dataset.f?+o.dataset.f:null;$('#fee').textContent=f==null?'—':brl(f);$('#tot').textContent=brl(t.s+(f||0))};
+  let cp=null;
+  const upd=()=>{const o=$('#z').selectedOptions[0],f0=o&&o.dataset.f?+o.dataset.f:null,fm=cfg.free_delivery_min_cents||0,disc=cp?cp.discount_cents:0,paid=t.s-disc,free=fm>0&&paid>=fm,f=f0==null?null:(free?0:f0);
+    $('#dl').hidden=!disc;$('#dc').textContent=cp?'('+cp.code+')':'';$('#dv').textContent='−'+brl(disc);
+    $('#fee').textContent=f0==null?'—':(free&&f0>0?'Grátis':brl(f));$('#tot').textContent=brl(paid+(f||0));
+    $('#fh').textContent=fm>0?(free?'🎉 Frete grátis neste pedido!':`Frete grátis em compras a partir de ${brl(fm)} (faltam ${brl(fm-paid)}).`):''};
+  const cpMsg=(t_,ok)=>{const m=$('#cpm');m.textContent=t_;m.style.color=ok?'var(--ok)':'var(--danger)'};
+  $('#cp').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('#cpb').click()}};
+  $('#cp').oninput=()=>{if(cp){cp=null;upd()}cpMsg('')};
+  $('#cpb').onclick=async()=>{
+    const code=$('#cp').value.trim().toUpperCase();if(!code)return cpMsg('Digite o código do cupom.');
+    const b=$('#cpb');b.disabled=true;
+    try{const r=await fetch('/api/coupons/validate?code='+encodeURIComponent(code)+'&subtotalCents='+t.s,{cache:'no-store'}),j=await r.json();
+      if(!r.ok)throw new Error(j.error||'Cupom inválido.');cp=j;cpMsg('Cupom aplicado! Desconto de '+brl(j.discount_cents)+'.',true);upd()}
+    catch(x){cp=null;upd();cpMsg(navigator.onLine?x.message:'Sem internet. Conecte-se para aplicar o cupom.')}
+    b.disabled=false};
   $('#z').onchange=upd;upd();
+  if(st&&!st.open){$('#err').textContent=st.message;$('#send').disabled=true}
   document.querySelectorAll('[name=pay]').forEach(r=>r.onchange=()=>{$('#chg').hidden=r.value!=='dinheiro'||!r.checked});
   $('#f').onsubmit=async e=>{
     e.preventDefault();const err=$('#err');err.textContent='';
     const pay=(document.querySelector('[name=pay]:checked')||{}).value;
-    const body={name:$('#n').value,phone:$('#p').value,zone:$('#z').value,address:$('#a').value,payment:pay,change_for:$('#c').value,notes:$('#o').value,items:Object.entries(cart).map(([id,qty])=>({id,qty}))};
+    const body={name:$('#n').value,phone:$('#p').value,zone:$('#z').value,address:$('#a').value,payment:pay,change_for:$('#c').value,notes:$('#o').value,coupon:cp?cp.code:'',items:Object.entries(cart).map(([id,qty])=>({id,qty}))};
     const btn=$('#send');btn.disabled=true;btn.textContent='Enviando…';
     try{
       const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      const j=await r.json();if(!r.ok)throw new Error(j.error||'Não foi possível enviar.');
+      const j=await r.json();if(!r.ok){const er=new Error(j.error||'Não foi possível enviar.');er.stock=!!j.stock;throw er}
       store.set('bdc_cust',{name:body.name,phone:body.phone,zone:body.zone,address:body.address});
-      cart={};render();done(j,body);
-    }catch(x){err.textContent=navigator.onLine?x.message:'Sem internet. Conecte-se para enviar o pedido.';btn.disabled=false;btn.textContent='Enviar pedido'}
+      cart={};render();done(j,body);refreshProducts();
+    }catch(x){
+      if(x.stock){await refreshProducts();showCart(x.message);return}   // acabou enquanto o cliente comprava: volta ao carrinho já corrigido
+      err.textContent=navigator.onLine?x.message:'Sem internet. Conecte-se para enviar o pedido.';btn.disabled=false;btn.textContent='Enviar pedido'}
   };
 }
 function done(o,b){
   const payTxt={pix:'Pix',cartao:'Cartão',dinheiro:'Dinheiro'+(b.change_for?' (troco p/ '+b.change_for+')':'')}[b.payment];
-  const msg=`Pedido #${o.id} — ${cfg.name}\n`+o.items.map(i=>`${i.qty}x ${i.name}`).join('\n')+`\n\nEntrega: ${brl(o.fee_cents)}\nTotal: ${brl(o.total_cents)}\nPagamento: ${payTxt}\n\n${b.name}\n${b.address} — ${b.zone}\n${b.phone}`+(b.notes?`\nObs.: ${b.notes}`:'');
+  const msg=`Pedido #${o.id} — ${cfg.name}\n`+o.items.map(i=>`${i.qty}x ${i.name}`).join('\n')+`\n\n${o.discount_cents?'Cupom '+o.coupon_code+': -'+brl(o.discount_cents)+'\n':''}Entrega: ${brl(o.fee_cents)}\nTotal: ${brl(o.total_cents)}\nPagamento: ${payTxt}\n\n${b.name}\n${b.address} — ${b.zone}\n${b.phone}`+(b.notes?`\nObs.: ${b.notes}`:'');
   open(`<button class="close" aria-label="Fechar">×</button><div class="ok"><div class="disp">Pedido #${o.id} enviado!</div>
-  <p style="margin:10px 0 16px;color:var(--muted)">Total ${brl(o.total_cents)} · pagamento na entrega. Para agilizar, confirme pelo WhatsApp.</p>
+  <p style="margin:10px 0 16px;color:var(--muted)">Total ${brl(o.total_cents)}${o.discount_cents?' (cupom '+esc(o.coupon_code)+': −'+brl(o.discount_cents)+')':''}${o.free_delivery?' (frete grátis)':''} · pagamento na entrega.${cfg.estimated_min&&cfg.estimated_max?` Previsão de entrega: ${cfg.estimated_min} a ${cfg.estimated_max} minutos.`:''} Para agilizar, confirme pelo WhatsApp.</p>
   ${cfg.whatsapp?`<a class="btn" style="width:100%" target="_blank" rel="noopener" href="https://wa.me/${cfg.whatsapp}?text=${encodeURIComponent(msg)}">Confirmar no WhatsApp</a>`:''}</div>`,'ok');
 }
 
@@ -296,9 +335,18 @@ $('#no').onclick=()=>{$('#gt').textContent='Que pena!';$('#gp').textContent='Só
     const [c,p]=await Promise.all([fetch('/api/config').then(r=>r.json()),fetch('/api/products').then(r=>r.json())]);
     cfg=c;products=p;store.set('bdc_cache',{c,p});
   }catch(e){const k=store.get('bdc_cache',null);if(k){cfg=k.c;products=k.p}else{$('#menu').innerHTML='<div class="empty">Não foi possível carregar o cardápio. Verifique a internet e tente de novo.</div>';return}}
-  for(const id of Object.keys(cart))if(!products.some(x=>x.id==id))delete cart[id];
+  fixCart();
   render();
+  loadStore();setInterval(()=>{loadStore();refreshProducts()},60000);
 })();
+async function loadStore(){
+  try{st=await fetch('/api/store',{cache:'no-store'}).then(r=>r.json())}catch(e){return}
+  const b=$('#sb');if(!st||!b)return;
+  const est=cfg.estimated_min&&cfg.estimated_max?` · entrega em ${cfg.estimated_min} a ${cfg.estimated_max} min`:'';
+  b.hidden=false;b.classList.toggle('closed',!st.open);
+  b.textContent=st.open?'🟢 Aberto agora'+(st.all_day?'':' · até '+st.closing_time)+est:'🔴 '+st.message;
+  if(!st.open){const s=$('#send');if(s&&!s.disabled){$('#err').textContent=st.message;s.disabled=true}}
+}
 </script>
 </body>
 </html>
