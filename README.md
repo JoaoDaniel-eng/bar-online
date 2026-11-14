@@ -30,3 +30,12 @@ Basta colocar os arquivos nas pastas, com o nome do produto/marca em minúsculas
 - logos das marcas em `src/public/brands/` (ex.: `skol.png`, `stella-artois.png`)
 Aceita jpg, png, webp e svg. Não precisa reiniciar o servidor. A URL cadastrada no painel, se houver, tem prioridade.
 `npm run fotos` mostra o que já está pronto e o que falta, e gera o arquivo `LISTA-DE-FOTOS.txt`.
+
+## Enviar fotos dos produtos pelo painel
+
+1. Acesse `/admin` e entre com a senha configurada em `ADMIN_PASSWORD`.
+2. Abra a aba **Produtos**.
+3. No cartão do produto, escolha uma foto JPG, PNG ou WebP e clique em **Enviar foto**.
+4. A imagem é redimensionada e otimizada no navegador antes do envio. Use **Remover foto** para apagar a imagem enviada.
+
+As fotos enviadas ficam gravadas no campo `image_url` da tabela `products` no PostgreSQL/Neon (como imagem JPEG em base64). Assim, elas continuam disponíveis após novos deploys no Render e não dependem do disco efêmero do serviço. O limite de envio é de aproximadamente 3,3 MB por foto original já otimizada (o servidor aceita até 4,5 MB de conteúdo codificado). Para manter o banco leve, prefira fotos de produto com até 1.100 px no maior lado.

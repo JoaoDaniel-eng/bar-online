@@ -3,6 +3,7 @@ const { Pool } = require('pg');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
+const { PRODUCT_IMAGE_URLS } = require('./fotos-catalogo');
 
 (function loadEnv() {
   const p = require('path').join(__dirname, '..', '.env');
@@ -25,7 +26,7 @@ const local = /localhost|127\.0\.0\.1/.test(DATABASE_URL);
 const pool = new Pool({ connectionString: DATABASE_URL, ssl: local ? false : { rejectUnauthorized: false } });
 const app = express();
 app.disable('x-powered-by');
-app.use(express.json({ limit: '100kb' }));
+app.use(express.json({ limit: '5mb' }));
 
 const wrap = fn => (req, res) => fn(req, res).catch(e => { console.error(e); res.status(500).json({ error: 'Erro interno. Tente novamente.' }); });
 const clip = (v, n) => String(v ?? '').trim().slice(0, n);
@@ -80,20 +81,10 @@ app.get('/api/config', wrap(async (req, res) => {
   res.json({ name: STORE_NAME, whatsapp: WHATSAPP_NUMBER.replace(/\D/g, ''), zones, brands });
 }));
 
-// Fotos reais verificadas em catálogo de distribuidor (PMG). Quando houver foto
-// local ou URL cadastrada no painel, ela tem prioridade sobre este mapa.
-const VERIFIED_PRODUCT_IMAGES = {
-  'brahma': 'https://sistema.pmg.com.br/ImagesUpload/webP_ID508_prd_2b617_508.webp',
-  'coca-cola-2-l': 'https://sistema.pmg.com.br/ImagesUpload/prd_e43ab_5.webp',
-  'guarana-antarctica': 'https://sistema.pmg.com.br/ImagesUpload/prd_dc397_18.webp',
-  'heineken-latao': 'https://sistema.pmg.com.br/ImagesUpload/prd_bdc1e_1579.webp',
-  'heineken-long-neck': 'https://sistema.pmg.com.br/ImagesUpload/webP_ID3197_prd_4d2c9_3197.webp',
-  'cachaca-51': 'https://sistema.pmg.com.br/ImagesUpload/webP_ID1578_prd_f2ea7_1578.JPG.webp'
-};
 app.get('/api/products', wrap(async (req, res) => {
   const { rows } = await pool.query('SELECT id,name,category,price_cents,description,image_url,brand FROM products WHERE active ORDER BY sort,id');
   const imgs = scan('produtos');
-  res.json(rows.map(r => ({ ...r, image_url: r.image_url || imgs[slug(r.name)] || VERIFIED_PRODUCT_IMAGES[slug(r.name)] || '' })));
+  res.json(rows.map(r => ({ ...r, image_url: r.image_url || imgs[slug(r.name)] || PRODUCT_IMAGE_URLS[slug(r.name)] || '' })));
 }));
 
 app.post('/api/orders', wrap(async (req, res) => {
@@ -170,7 +161,27 @@ app.post('/api/admin/products', auth, wrap(async (req, res) => {
 }));
 app.put('/api/admin/products/:id', auth, wrap(async (req, res) => {
   const v = prodBody(req.body || {}); if (!v) return res.status(400).json({ error: 'Preencha nome, categoria e preço.' });
-  await pool.query('UPDATE products SET name=$1,category=$2,price_cents=$3,description=$4,image_url=$5,active=$6,brand=$7 WHERE id=$8', [...v, parseInt(req.params.id, 10)]);
+  if (Object.prototype.hasOwnProperty.call(req.body || {}, 'image_url')) {
+    await pool.query('UPDATE products SET name=$1,category=$2,price_cents=$3,description=$4,image_url=$5,active=$6,brand=$7 WHERE id=$8', [...v, parseInt(req.params.id, 10)]);
+  } else {
+    await pool.query('UPDATE products SET name=$1,category=$2,price_cents=$3,description=$4,active=$6,brand=$7 WHERE id=$8', [v[0],v[1],v[2],v[3],v[5],v[6],parseInt(req.params.id,10)]);
+  }
+  res.json({ ok: true });
+}));
+app.put('/api/admin/products/:id/image', auth, wrap(async (req, res) => {
+  const data = String(req.body?.image_data || '');
+  // Uploads são armazenados no Neon para não desaparecerem em novos deploys do Render.
+  if (!/^data:image\/(jpeg|png|webp);base64,/.test(data)) return res.status(400).json({ error: 'Envie uma imagem JPG, PNG ou WebP válida.' });
+  if (data.length > 4_500_000) return res.status(413).json({ error: 'Imagem muito grande. Escolha uma foto menor.' });
+  const id = parseInt(req.params.id, 10);
+  const result = await pool.query('UPDATE products SET image_url=$1 WHERE id=$2 RETURNING id', [data, id]);
+  if (!result.rowCount) return res.status(404).json({ error: 'Produto não encontrado.' });
+  res.json({ ok: true, image_url: data });
+}));
+app.delete('/api/admin/products/:id/image', auth, wrap(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const result = await pool.query("UPDATE products SET image_url='' WHERE id=$1 RETURNING id", [id]);
+  if (!result.rowCount) return res.status(404).json({ error: 'Produto não encontrado.' });
   res.json({ ok: true });
 }));
 app.delete('/api/admin/products/:id', auth, wrap(async (req, res) => {

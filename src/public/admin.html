@@ -23,6 +23,10 @@ button.d{color:#ff8a8a}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
 .muted{color:var(--muted);font-size:14px}
 .err{color:#ff8a8a;min-height:1.3em;margin-top:8px}
+.photo-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0 12px}
+.photo-preview{width:76px;height:76px;object-fit:contain;background:#fff;border-radius:10px;border:1px solid var(--line)}
+.photo-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex:1}
+.photo-controls input{max-width:280px}
 a{color:#7ea6ff}
 </style>
 </head>
@@ -67,15 +71,40 @@ async function orders(){
   };
   await load();timer=setInterval(()=>{if(!document.activeElement||document.activeElement.tagName!=='SELECT')load().catch(()=>{})},20000);
 }
+function optimizePhoto(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();reader.onerror=()=>reject(new Error('Não foi possível ler o arquivo.'));
+    reader.onload=()=>{const img=new Image();img.onerror=()=>reject(new Error('Arquivo de imagem inválido.'));
+      img.onload=()=>{const max=1100,scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',0.82));};img.src=reader.result;};reader.readAsDataURL(file);
+  });
+}
 async function products(){
   const rows=await api('products');
-  const form=(p={})=>`<div class="grid"><input placeholder="Nome" data-f="name" value="${esc(p.name)}"><input placeholder="Categoria" data-f="category" value="${esc(p.category)}"><input placeholder="Marca (ex.: Skol)" data-f="brand" value="${esc(p.brand)}"><input placeholder="Preço (ex.: 4,50)" data-f="price" value="${p.price_cents!=null?(p.price_cents/100).toFixed(2).replace('.',','):''}"><input placeholder="Descrição" data-f="description" value="${esc(p.description)}"><input placeholder="URL da foto (opcional)" data-f="image_url" value="${esc(p.image_url)}"></div>`;
-  $('#body').innerHTML=`<div class="box"><b>Novo produto</b>${form()}<button class="p" id="add">Adicionar</button><div class="err" id="e"></div></div>`+rows.map(p=>`<div class="box" data-p="${p.id}">${form(p)}<label class="muted"><input type="checkbox" data-f="active" ${p.active?'checked':''} style="width:auto;min-height:0"> Disponível no cardápio</label><div class="top" style="margin-top:8px"><button class="p" data-save>Salvar</button><button class="d" data-del>Excluir</button></div></div>`).join('');
-  const read=el=>{const o={};el.querySelectorAll('[data-f]').forEach(i=>o[i.dataset.f]=i.type==='checkbox'?i.checked:i.value);return o};
+  const form=(p={})=>`<div class="grid"><input placeholder="Nome" data-f="name" value="${esc(p.name)}"><input placeholder="Categoria" data-f="category" value="${esc(p.category)}"><input placeholder="Marca (ex.: Skol)" data-f="brand" value="${esc(p.brand)}"><input placeholder="Preço (ex.: 4,50)" data-f="price" value="${p.price_cents!=null?(p.price_cents/100).toFixed(2).replace('.',','):''}"><input placeholder="Descrição" data-f="description" value="${esc(p.description)}"><input placeholder="URL da foto (opcional)" data-f="image_url" ${String(p.image_url||'').startsWith('data:image/')?'data-keep-image="true"':''} value="${esc(String(p.image_url||'').startsWith('data:image/')?'':p.image_url)}"></div>`;
+  $('#body').innerHTML=`<div class="box"><b>Novo produto</b>${form()}<button class="p" id="add">Adicionar</button><div class="err" id="e"></div><p class="muted">Depois de criar o produto, use a opção de foto no cartão dele para enviar uma imagem do seu computador ou celular.</p></div>`+rows.map(p=>`<div class="box" data-p="${p.id}"><b>${esc(p.name)}</b><div class="photo-row"><img class="photo-preview" data-preview src="${p.image_url&&/^https?:|^data:image|^\//.test(p.image_url)?esc(p.image_url):''}" onerror="this.style.visibility='hidden'" style="${p.image_url?'':'visibility:hidden'}"><div class="photo-controls"><input type="file" accept="image/jpeg,image/png,image/webp" data-photo aria-label="Escolher foto de ${esc(p.name)}"><button type="button" data-upload>Enviar foto</button><button type="button" data-remove-photo class="d">Remover foto</button></div></div>${form(p)}<label class="muted"><input type="checkbox" data-f="active" ${p.active?'checked':''} style="width:auto;min-height:0"> Disponível no cardápio</label><div class="top" style="margin-top:8px"><button class="p" data-save>Salvar</button><button class="d" data-del>Excluir</button></div><div class="muted" data-photo-status aria-live="polite"></div></div>`).join('');
+  const read=el=>{const o={};el.querySelectorAll('[data-f]').forEach(i=>{if(i.dataset.f==='image_url'&&i.dataset.keepImage==='true')return;o[i.dataset.f]=i.type==='checkbox'?i.checked:i.value});return o};
+  document.querySelectorAll('[data-f="image_url"]').forEach(i=>i.addEventListener('input',()=>delete i.dataset.keepImage));
   $('#add').onclick=async()=>{try{const o=read($('#add').parentElement);o.active=true;await api('products',{method:'POST',body:JSON.stringify(o)});products()}catch(e){$('#e').textContent=e.message}};
   document.querySelectorAll('[data-p]').forEach(b=>{
     b.querySelector('[data-save]').onclick=async e=>{try{await api('products/'+b.dataset.p,{method:'PUT',body:JSON.stringify(read(b))});e.target.textContent='Salvo ✓'}catch(x){alert(x.message)}};
     b.querySelector('[data-del]').onclick=async()=>{if(confirm('Excluir este produto?')){await api('products/'+b.dataset.p,{method:'DELETE'});products()}};
+    b.querySelector('[data-upload]').onclick=async e=>{
+      const input=b.querySelector('[data-photo]'), file=input.files?.[0], status=b.querySelector('[data-photo-status]');
+      if(!file){status.textContent='Escolha uma foto primeiro.';return}
+      if(!['image/jpeg','image/png','image/webp'].includes(file.type)){status.textContent='Use uma imagem JPG, PNG ou WebP.';return}
+      try{
+        status.textContent='Preparando imagem…';
+        const imageData=await optimizePhoto(file);
+        await api('products/'+b.dataset.p+'/image',{method:'PUT',body:JSON.stringify({image_data:imageData})});
+        const preview=b.querySelector('[data-preview]');preview.src=imageData;preview.style.visibility='visible';
+        b.querySelector('[data-f="image_url"]').dataset.keepImage='true';
+        status.textContent='Foto enviada e salva no banco de dados ✓';
+      }catch(x){status.textContent=x.message||'Não foi possível enviar a foto.'}
+    };
+    b.querySelector('[data-remove-photo]').onclick=async()=>{
+      if(!confirm('Remover a foto enviada deste produto?'))return;
+      try{await api('products/'+b.dataset.p+'/image',{method:'DELETE'});b.querySelector('[data-preview]').style.visibility='hidden';b.querySelector('[data-preview]').removeAttribute('src');b.querySelector('[data-f="image_url"]').value='';b.querySelector('[data-f="image_url"]').dataset.keepImage='true';b.querySelector('[data-photo-status]').textContent='Foto removida.'}catch(x){alert(x.message)}
+    };
   });
 }
 async function brands(){
