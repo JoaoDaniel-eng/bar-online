@@ -28,9 +28,22 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:999px;font-weight:600;background:var(--amber);color:#1a1100}
 .btn.ghost{background:none;color:var(--blue-soft);border:1px solid var(--line);min-height:40px;padding:0 14px;font-size:14px}
 .btn.blue{background:var(--blue);color:#fff}
-.hero{text-align:center;padding:28px 20px 34px;background:radial-gradient(ellipse at 50% 38%,rgba(45,107,255,.28),transparent 62%)}
-.hero img{width:min(78vw,340px);height:auto;border-radius:50%;box-shadow:0 0 60px rgba(45,107,255,.45)}
-.hero p{margin:18px auto 20px;max-width:30ch;color:var(--muted);font-size:18px}
+.hero{position:relative;overflow:hidden;background:radial-gradient(900px 520px at 78% 45%,rgba(45,107,255,.30),transparent 65%),linear-gradient(180deg,#030a22,#000)}
+.hero-in{max-width:1100px;margin:0 auto;padding:44px 24px 40px;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:20px}
+.eyebrow{display:block;color:var(--blue-soft);font:700 13px Barlow,sans-serif;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
+.hero h1{font-size:clamp(54px,9vw,104px);line-height:.95;text-transform:uppercase}
+.hero h1 em{display:block;color:var(--amber);text-shadow:0 0 30px rgba(255,176,32,.35)}
+.hero .lead{margin:20px 0 26px;max-width:34ch;color:var(--muted);font-size:19px}
+.hero .cta{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hero .btn{min-height:54px;padding:0 30px;font-size:18px;box-shadow:0 8px 30px rgba(255,176,32,.3)}
+.hero .opennow{display:flex;align-items:center;gap:10px;margin-top:22px;color:var(--muted);font-size:15px}
+.hero .opennow i{width:12px;height:12px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.hero .opennow.closed i{background:var(--danger);box-shadow:0 0 10px var(--danger)}
+.hero-art{position:relative;display:grid;place-items:center;min-height:380px}
+.hero-art::before{content:"";position:absolute;width:min(84%,400px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(45,107,255,.55),rgba(45,107,255,.12) 70%);box-shadow:0 0 90px rgba(45,107,255,.35)}
+.hero-art img{position:relative;height:min(62vh,560px);width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 22px 30px rgba(0,0,0,.55));animation:float 5s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-10px)}}
+@media(max-width:760px){.hero-in{grid-template-columns:1fr;padding:30px 20px 24px;text-align:center}.hero .lead{margin-left:auto;margin-right:auto}.hero .cta,.hero .opennow{justify-content:center}.hero-art{min-height:0;order:-1}.hero-art img{height:min(46vh,380px)}.hero-art::before{width:min(72vw,300px)}}
 .chips{position:sticky;top:0;z-index:5;display:flex;gap:8px;overflow-x:auto;padding:12px 16px;background:rgba(0,0,0,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);scrollbar-width:none;padding-top:calc(12px + env(safe-area-inset-top,0px))}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;padding:8px 16px;border-radius:999px;border:1px solid var(--line);color:var(--blue-soft);font:italic 700 17px 'Barlow Condensed',sans-serif}
@@ -127,10 +140,16 @@ footer{max-width:720px;margin:36px auto 0;padding:0 16px 28px;color:var(--muted)
 <div class="sb" id="sb" role="status" hidden></div>
 
 <section class="hero">
-  <img src="/icons/logo.jpg" alt="Logo Bar On-line do Cruzeiro: chope gelado e Cristo Redentor" width="340" height="340">
-  <p>Bebida gelada pelo celular, na sua porta.</p>
-  <a class="btn" href="#menu">Ver cardápio</a>
-  <p class="hint" id="iosHint" hidden>No iPhone: toque em Compartilhar e depois em “Adicionar à Tela de Início” para instalar.</p>
+  <div class="hero-in">
+    <div class="hero-txt">
+      <span class="eyebrow">Delivery de bebidas ❄</span>
+      <h1>Sua bebida<em>bem gelada</em></h1>
+      <p class="lead">Escolha sua cerveja, drink ou refri e receba gelada, direto na sua porta.</p>
+      <div class="cta"><a class="btn" href="#menu">Ver cardápio</a></div>
+      <p class="hint" id="iosHint" hidden>No iPhone: toque em Compartilhar e depois em “Adicionar à Tela de Início” para instalar.</p>
+    </div>
+    <div class="hero-art"><img src="/icons/hero-bebida.webp" alt="Garrafa de cerveja gelada com limão e respingos" width="586" height="1000" fetchpriority="high"></div>
+  </div>
 </section>
 
 <div class="sw"><button class="sbtn" id="openSearch" aria-label="Buscar bebidas e marcas"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Busque por produtos ou marcas</button></div>
