@@ -42,14 +42,32 @@ a{color:#7ea6ff}
 table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08)}th{color:var(--muted);font-weight:500}
 .rb{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:3px 0;font-size:14px}.rb i{display:block;height:12px;background:var(--blue);border-radius:6px;min-width:3px}.rb.pk i{background:var(--amber)}.rb small{grid-column:2/4;color:var(--muted);margin-top:-4px}.badge{margin-left:6px;padding:1px 8px;border-radius:99px;font-size:12px;border:1px solid var(--amber);color:var(--amber)}
 .tw{overflow-x:auto}.small{min-height:34px;padding:0 10px;font-size:14px}
-.qty{font-size:34px;font-weight:700;line-height:1.1;margin:8px 0 6px}.qty span{font-size:16px;color:var(--muted);margin-left:6px;font-weight:500}
-.meter{height:10px;border-radius:99px;background:#000;border:1px solid var(--line);overflow:hidden;margin-bottom:4px}.meter i{display:block;height:100%;border-radius:99px}
-.m-good{background:#6be08a}.m-low{background:var(--amber)}.m-empty{background:#ff8a8a}
-.tag.st-good{border-color:#6be08a;color:#6be08a}.tag.st-empty{border-color:#ff8a8a;color:#ff8a8a}
-.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.ov{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.78);display:grid;place-items:center;padding:16px}
-.mo{width:100%;max-width:420px;max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:10px}.mo label{display:grid;gap:4px}
+/* Estoque (mesmo desenho do Açaí da Roça, nas cores do bar) */
+.eyebrow{display:block;color:var(--amber);font-size:12px;font-weight:700;letter-spacing:.12em}
+.inv{display:grid;gap:16px}.inv-intro h2{font-size:26px;margin:2px 0}
+.inv-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}.inv-card h3{font-size:18px;margin-bottom:6px}.inv-card>.muted{margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.stat{display:flex;flex-direction:column;gap:4px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.stat span{font-size:13px;color:var(--muted)}.stat strong{font-size:24px;color:var(--amber)}
+.inv-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:end}.inv-form label{display:grid;gap:6px;font-weight:600;font-size:14px}.inv-form .full{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap}.inv-form button{min-height:46px}
+.inv-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.inv-bar input{flex:1 1 220px;min-width:0}.inv-bar select{flex:0 1 auto;width:auto;min-width:150px}
+.stock-list{display:grid;gap:12px}
+.stock-card{display:grid;gap:12px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.stock-card.is-low{border-color:var(--amber)}.stock-card.is-empty{border-color:#ff6b78}
+.stock-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.stock-head h4{font-size:17px}.stock-head small{display:block;color:var(--muted);margin-top:2px;font-size:13.5px}
+.stock-badge{flex:none;padding:4px 10px;border-radius:99px;font-size:12.5px;font-weight:700;border:1px solid currentColor;white-space:nowrap}.stock-badge.good{color:#6be08a}.stock-badge.low{color:var(--amber)}.stock-badge.empty{color:#ff8a8a}
+.stock-qty{font-size:28px;font-weight:800;line-height:1.1}.stock-qty span{font-size:16px;font-weight:600;color:var(--muted);margin-left:4px}
+.stock-meter{display:grid;gap:5px}.stock-meter-track{height:10px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}.stock-meter-track i{display:block;height:100%;border-radius:99px;transition:width .2s ease}.stock-meter-track i.good{background:#24a36a}.stock-meter-track i.low{background:#e3a323}.stock-meter-track i.empty{background:#d94a55}.stock-meter small{font-size:13px;color:var(--muted)}
+.stock-facts{display:flex;gap:6px 18px;flex-wrap:wrap;list-style:none;padding:0;font-size:14px;color:var(--muted)}.stock-facts strong{color:var(--foam)}
+.stock-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.stock-actions button{width:100%}
+.stock-empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+dialog.stock-dialog{width:min(480px,calc(100% - 28px));max-height:calc(100dvh - 28px);overflow:auto;padding:0;margin:auto;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--foam);box-shadow:0 24px 80px #000a;color-scheme:dark}
+.stock-dialog::backdrop{background:#000c;backdrop-filter:blur(3px)}
+.stock-dialog-form{display:grid;gap:14px;padding:22px}.stock-dialog-form h3{font-size:20px}.stock-dialog-desc{color:var(--muted);line-height:1.5}
+.stock-field{display:grid;gap:6px;font-weight:700}.stock-field small{font-weight:400;color:var(--muted);line-height:1.4}.stock-field-row{display:flex;align-items:center;gap:10px}.stock-unit-tag{min-width:42px;font-weight:700}
+.stock-dialog-error{color:#ff8a8a;font-weight:600}.stock-dialog-error:empty{display:none}
+.stock-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+button.danger{background:#a72e43;border:0;color:#fff;font-weight:600}
+.stock-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;max-width:min(560px,calc(100% - 28px));padding:12px 18px;border-radius:12px;font-weight:600;box-shadow:0 12px 40px #000a;background:#1f6f46;color:#fff}.stock-toast.error{background:#a72e43}.stock-toast[hidden]{display:none}
 .cnt{max-height:55vh;overflow:auto;border:1px solid var(--line);border-radius:10px;margin:10px 0}.cnt .row{align-items:center;padding:6px 10px}.cnt input{width:96px;min-height:38px;text-align:right}.cnt h4{padding:8px 10px;background:#000;color:var(--amber);position:sticky;top:0}
+@media(max-width:620px){.stats{grid-template-columns:1fr 1fr}.inv-form{grid-template-columns:1fr}.inv-bar select{flex:1 1 100%}.stock-actions{grid-template-columns:1fr 1fr}.stock-dialog-actions{flex-direction:column-reverse}.stock-dialog-actions button{width:100%}}
 @media print{body *{display:none}}
 </style>
 </head>
@@ -388,79 +406,111 @@ async function cash(){
   document.querySelectorAll('[data-cprint]').forEach(x=>x.onclick=()=>printCash(cashLast));
 }
 
-/* ---------- Estoque ---------- */
+/* ---------- Estoque (mesmo desenho e fluxo do Açaí da Roça) ---------- */
 async function watchStock(){try{const s=await api('estoque/summary');stockAlert=s.low+s.empty;const t=document.querySelector('[data-t=estoque]');if(t)t.textContent='Estoque'+(stockAlert?' ('+stockAlert+')':'')}catch(e){}}
 const UL={un:'un.',kg:'kg',g:'g',l:'L',ml:'ml'},MV={entrada:'Compra',saida:'Retirada',perda:'Perda',conferencia:'Correção de saldo',ajuste:'Ajuste',venda:'Baixa de pedido',devolucao:'Devolução'},MS={entrada:'+',devolucao:'+',saida:'−',perda:'−',venda:'−'};
-const nf=(n,max=3)=>Number(n||0).toLocaleString('pt-BR',{maximumFractionDigits:max});
-let sFilter={q:'',st:'all'};
+const unitLabel=u=>UL[u]||u||'',nf=(n,max=3)=>Number(n||0).toLocaleString('pt-BR',{maximumFractionDigits:max}),toNum=v=>Number(String(v??'').trim().replace(',','.'));
+const positive=(v,l)=>{const n=toNum(v);if(!Number.isFinite(n)||n<=0)throw new Error(l+' precisa ser maior que zero.');return n};
+const nonNeg=(v,l)=>{const n=toNum(v===''?0:v);if(!Number.isFinite(n)||n<0)throw new Error(l+' não pode ser negativo.');return n};
+let sFilter={q:'',st:'all'},sItems=[];
 function stStatus(i){const q=i.quantity,cap=Math.max(i.capacity||0,q),m=i.minimum||0,p=cap>0?Math.max(0,Math.min(100,q/cap*100)):0;
-  if(q<=0)return{k:'empty',l:'Esgotado',p:0};if((m>0&&q<=m)||p<=20)return{k:'low',l:'Está acabando',p};return{k:'good',l:'Estoque bom',p}}
-/* Janela simples: campos + botão; erros do servidor aparecem dentro dela. */
-function ask(title,fields,ok,submit){
-  const d=document.createElement('div');d.className='ov';
-  d.innerHTML=`<form class="mo"><b>${esc(title)}</b>${fields.map(f=>f.note?`<p class="muted">${esc(f.note)}</p>`:`<label class="muted">${esc(f.label)}${f.options?`<select name="${f.name}">${f.options.map(o=>`<option value="${esc(o[0])}" ${o[0]===f.value?'selected':''}>${esc(o[1])}</option>`).join('')}</select>`:`<input name="${f.name}" inputmode="${f.mode||'text'}" placeholder="${esc(f.ph||'')}" value="${esc(f.value??'')}" autocomplete="off" ${f.disabled?'disabled':''}>`}</label>`).join('')}<div class="err"></div><div class="top"><button type="button" data-x>Cancelar</button><button class="p">${esc(ok)}</button></div></form>`;
-  document.body.appendChild(d);
-  const close=()=>d.remove(),f=d.querySelector('form'),er=d.querySelector('.err');
-  d.onclick=e=>{if(e.target===d)close()};d.querySelector('[data-x]').onclick=close;
-  const first=f.querySelector('input:not([disabled]),select');if(first)first.focus();
-  f.onsubmit=async e=>{e.preventDefault();const btn=f.querySelector('button.p');btn.disabled=true;er.textContent='';
-    try{const v={};new FormData(f).forEach((x,k)=>v[k]=x);await submit(v);close()}catch(x){er.textContent=x.message;btn.disabled=false}};
+  if(q<=0)return{key:'empty',label:'Esgotado',percent:0};if((m>0&&q<=m)||p<=20)return{key:'low',label:'Está acabando',percent:p};return{key:'good',label:'Estoque bom',percent:p}}
+/* Aviso flutuante (visível mesmo com a página rolada) */
+let toastT;function notify(msg,type='ok'){let el=document.getElementById('stock-toast');if(!el){el=document.createElement('div');el.id='stock-toast';el.className='stock-toast';el.setAttribute('role','status');document.body.append(el)}
+  el.textContent=msg;el.classList.toggle('error',type==='error');el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true},type==='error'?8000:4500)}
+/* Diálogo único para todas as ações: onSubmit pode lançar Error (a mensagem aparece nele e o digitado é mantido). Resolve true se concluiu. */
+function openDialog({eyebrow,title,description,fields=[],submitLabel='Salvar',danger=false,onSubmit}){
+  return new Promise(resolve=>{
+    const dlg=document.createElement('dialog');dlg.className='stock-dialog';
+    dlg.innerHTML=`<form class="stock-dialog-form"><div><span class="eyebrow">${esc(eyebrow)}</span><h3>${esc(title)}</h3></div>${description?`<p class="stock-dialog-desc">${esc(description)}</p>`:''}${fields.map((f,i)=>{
+      const ctl=f.type==='select'?`<select name="${f.name}">${f.options.map(o=>`<option value="${esc(o.value)}" ${String(o.value)===String(f.value)?'selected':''}>${esc(o.label)}</option>`).join('')}</select>`
+        :`<input name="${f.name}" type="${f.type==='number'?'number':'text'}" ${f.type==='number'?`step="${f.step||'any'}" inputmode="${f.step==='1'?'numeric':'decimal'}" min="0"`:''} ${f.maxLength?`maxlength="${f.maxLength}"`:''} placeholder="${esc(f.placeholder||'')}" value="${esc(f.value??'')}" ${f.required?'required':''} autocomplete="off">`;
+      return `<label class="stock-field">${esc(f.label)}${f.suffix?`<div class="stock-field-row">${ctl}<strong class="stock-unit-tag">${esc(f.suffix)}</strong></div>`:ctl}${f.hint?`<small>${esc(f.hint)}</small>`:''}</label>`}).join('')}
+      <p class="stock-dialog-error" role="alert"></p><div class="stock-dialog-actions"><button type="button" data-cancel>Cancelar</button><button type="submit" class="${danger?'danger':'p'}">${esc(submitLabel)}</button></div></form>`;
+    document.body.append(dlg);
+    const form=dlg.querySelector('form'),err=dlg.querySelector('.stock-dialog-error'),sub=form.querySelector('[type=submit]');let done=false;
+    const finish=v=>{if(done)return;done=true;if(dlg.open)dlg.close();dlg.remove();resolve(v)};
+    form.querySelector('[data-cancel]').onclick=()=>finish(false);
+    dlg.addEventListener('cancel',e=>{e.preventDefault();finish(false)});dlg.addEventListener('click',e=>{if(e.target===dlg)finish(false)});
+    form.onsubmit=async e=>{e.preventDefault();err.textContent='';const v={};for(const f of fields)v[f.name]=form.elements[f.name].value;
+      sub.disabled=true;const t=sub.textContent;sub.textContent='Salvando…';
+      try{await onSubmit(v);finish(true)}catch(x){err.textContent=x.message||'Não foi possível concluir. Tente novamente.';sub.disabled=false;sub.textContent=t}};
+    dlg.showModal();const first=form.querySelector('input,select');if(first&&!danger){first.focus();if(first.select)first.select()}else form.querySelector('[data-cancel]').focus();
+  });
 }
+const mvApi=(item,type,body)=>api('estoque/movements',{method:'POST',body:JSON.stringify({itemId:item.id,type,...body})});
+const stepOf=item=>item.unit==='un'?'1':'any';
+const ACTIONS={
+  async buy(item){return openDialog({eyebrow:'REPOSIÇÃO DE ESTOQUE',title:'Adicionar compra',description:`${item.name} (saldo atual: ${nf(item.quantity)} ${unitLabel(item.unit)}). A quantidade informada é somada ao saldo.`,
+    fields:[{name:'quantity',label:'Quanto você comprou?',type:'number',step:stepOf(item),required:true,suffix:unitLabel(item.unit),placeholder:'Ex.: 24'},{name:'totalPaid',label:'Quanto pagou no total? (R$)',type:'number',step:'0.01',placeholder:'Ex.: 85,00',hint:'Opcional. Alimenta o valor gasto em compras.'},{name:'supplier',label:'Fornecedor',type:'text',maxLength:120,placeholder:'Opcional'}],
+    submitLabel:'Adicionar ao estoque',onSubmit:v=>mvApi(item,'entrada',{quantity:positive(v.quantity,'A quantidade comprada'),totalPaid:nonNeg(v.totalPaid,'O valor pago'),supplier:v.supplier.trim()})})},
+  async count(item){return openDialog({eyebrow:'CONFERÊNCIA DE ESTOQUE',title:'Corrigir saldo',description:`${item.name} (saldo registrado: ${nf(item.quantity)} ${unitLabel(item.unit)}). Informe quanto existe fisicamente agora. A diferença fica no histórico e não conta como compra.`,
+    fields:[{name:'quantity',label:'Quantidade que você tem agora',type:'number',step:stepOf(item),required:true,value:item.quantity,suffix:unitLabel(item.unit)}],
+    submitLabel:'Salvar quantidade',onSubmit:v=>mvApi(item,'conferencia',{quantity:nonNeg(v.quantity,'A quantidade')})})},
+  async out(item){return openDialog({eyebrow:'SAÍDA DE ESTOQUE',title:'Retirar do estoque',description:`${item.name} (saldo atual: ${nf(item.quantity)} ${unitLabel(item.unit)}). Use para consumo do bar fora dos pedidos, quebra ou vencimento.`,
+    fields:[{name:'type',label:'Motivo',type:'select',options:[{value:'saida',label:'Uso / retirada'},{value:'perda',label:'Perda / quebra / vencimento'}]},{name:'quantity',label:'Quanto saiu?',type:'number',step:stepOf(item),required:true,suffix:unitLabel(item.unit)},{name:'reason',label:'Observação',type:'text',maxLength:300,placeholder:'Opcional. Ex.: quebrou, venceu'}],
+    submitLabel:'Registrar retirada',onSubmit:v=>{const q=positive(v.quantity,'A quantidade retirada');if(q>item.quantity)throw new Error(`Você só tem ${nf(item.quantity)} ${unitLabel(item.unit)} registrados.`);return mvApi(item,v.type,{quantity:q,reason:v.reason.trim()})}})},
+  async edit(item){return openDialog({eyebrow:'DADOS DO PRODUTO',title:'Editar produto',description:'Corrija o nome, a unidade ou os limites do medidor. O saldo e os históricos são mantidos.',
+    fields:[{name:'name',label:'Nome do produto',type:'text',required:true,maxLength:100,value:item.name},
+      {name:'unit',label:'Unidade do estoque',type:'select',value:item.unit,options:item.product_id?[{value:'un',label:'Unidades'}]:[{value:'un',label:'Unidades'},{value:'kg',label:'Quilos (kg)'},{value:'g',label:'Gramas (g)'},{value:'l',label:'Litros (L)'},{value:'ml',label:'Mililitros (ml)'}],hint:item.product_id?'Produto ligado ao cardápio é controlado em unidades.':'Trocar entre kg e g (ou L e ml) converte o saldo automaticamente. Outras trocas não são permitidas.'},
+      {name:'minimum',label:'Avisar quando restar até',type:'number',step:stepOf(item),value:item.minimum||0,hint:'Na unidade do estoque. 0 usa só o medidor (20% da quantidade cheia).'},
+      {name:'capacity',label:'Quantidade cheia (100% do medidor)',type:'number',step:stepOf(item),value:Math.max(item.capacity||0,item.quantity||0),hint:'Use para reiniciar o medidor depois de uma compra grande ou de uma correção.'}],
+    submitLabel:'Salvar alterações',onSubmit:v=>{const name=v.name.trim();if(name.length<2)throw new Error('Informe o nome do produto.');return api('estoque/items/'+item.id,{method:'PATCH',body:JSON.stringify({name,unit:v.unit,minimum:nonNeg(v.minimum,'O alerta'),capacity:nonNeg(v.capacity,'A quantidade cheia')})})}})},
+  async del(item){return openDialog({eyebrow:'EXCLUIR PRODUTO',title:`Excluir “${item.name}”?`,description:'O produto sai da lista de estoque. O histórico de compras e movimentações é preservado, e o produto do cardápio com o mesmo nome (se houver) volta a vender sem controle de estoque.',submitLabel:'Excluir produto',danger:true,onSubmit:()=>api('estoque/items/'+item.id,{method:'DELETE'})})}
+};
+const DONE={buy:i=>'Compra registrada em '+i.name+'.',count:i=>'Saldo de '+i.name+' atualizado.',out:()=>'Retirada registrada.',edit:()=>'Produto atualizado.',del:i=>i.name+' foi excluído do estoque. O histórico foi mantido.'};
 async function estoque(){
   document.title='Painel — Bar On-line do Cruzeiro';
-  const data=await api('estoque'),items=data.items;
-  const st=items.map(stStatus),low=st.filter(s=>s.k==='low').length,empty=st.filter(s=>s.k==='empty').length,spent=items.reduce((n,i)=>n+i.purchase_total_cents,0);
+  const data=await api('estoque'),items=sItems=data.items,mv=data.movements;
+  const sts=items.map(stStatus),low=sts.filter(s=>s.key==='low').length,empty=sts.filter(s=>s.key==='empty').length,spent=items.reduce((n,i)=>n+i.purchase_total_cents,0);
   stockAlert=low+empty;const tb=document.querySelector('[data-t=estoque]');if(tb)tb.textContent='Estoque'+(stockAlert?' ('+stockAlert+')':'');
-  const reload=()=>estoque();
-  const cardHtml=i=>{const s=stStatus(i),u=UL[i.unit]||i.unit;return `<div class="box" data-i="${i.id}">
-    <div class="top"><div><b>${esc(i.name)}</b><div class="muted">${i.product_id?'Ligado ao cardápio: '+esc(i.product_name||i.name)+' — cada pedido desconta sozinho':'Controle manual (os pedidos não descontam)'}</div></div><span class="tag st-${s.k}">${s.l}</span></div>
-    <div class="qty">${nf(i.quantity)}<span>${u}</span></div>
-    <div class="meter"><i class="m-${s.k}" style="width:${s.p}%"></i></div><div class="muted">${Math.round(s.p)}% da quantidade cheia (${nf(Math.max(i.capacity,i.quantity))} ${u})</div>
-    <div class="muted" style="margin-top:6px">Gasto em compras: <b>${brl(i.purchase_total_cents)}</b>${i.minimum>0?' · Avisar com <b>'+nf(i.minimum)+' '+u+'</b>':''}</div>
-    <div class="acts"><button class="p small" data-act="buy">＋ Adicionar compra</button><button class="small" data-act="count">Corrigir saldo</button><button class="small" data-act="out">Retirar / perda</button><button class="small" data-act="edit">Editar</button><button class="small d" data-act="del">Excluir</button></div></div>`};
-  const list=()=>{const q=sFilter.q.trim().toLowerCase(),r=items.filter(i=>(!q||i.name.toLowerCase().includes(q))&&(sFilter.st==='all'||stStatus(i).k===sFilter.st));
-    $('#stl').innerHTML=!items.length?'<p class="muted">Nenhum item cadastrado. Use o formulário acima, ou “Contar vários produtos de uma vez”, para começar.</p>':r.length?r.map(cardHtml).join(''):'<p class="muted">Nenhum item encontrado com esse filtro.</p>'};
-  const mv=data.movements;
-  $('#body').innerHTML=`<div class="cards"><div class="card"><span class="muted">Itens cadastrados</span><b>${items.length}</b></div><div class="card"><span class="muted">Estoque acabando</span><b>${low}</b></div><div class="card"><span class="muted">Esgotados</span><b>${empty}</b></div><div class="card"><span class="muted">Gasto em compras</span><b>${brl(spent)}</b></div></div>
-  <div class="box"><b>＋ Cadastrar item</b>
-    <div class="grid"><label class="muted">Produto<input id="sn" list="sn-l" placeholder="Ex.: Heineken Latão" autocomplete="off"><datalist id="sn-l">${data.products.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist></label>
-    <label class="muted">Unidade<select id="su"><option value="un">Unidades</option><option value="kg">Quilos (kg)</option><option value="g">Gramas (g)</option><option value="l">Litros (L)</option><option value="ml">Mililitros (ml)</option></select></label>
-    <label class="muted">Quantidade agora<input id="sq0" inputmode="decimal" placeholder="Ex.: 24"></label>
-    <label class="muted">Valor gasto (R$)<input id="sp" inputmode="decimal" placeholder="Opcional"></label>
-    <label class="muted">Alertar quando restar<input id="sm" inputmode="decimal" placeholder="Opcional"></label></div>
-    <button class="p" id="sadd">Cadastrar</button><button id="sbulk" style="margin-left:8px">Contar vários produtos de uma vez</button><div class="err" id="e"></div>
-    <p class="muted">Se o nome for igual ao de um produto do cardápio, o estoque fica <b>ligado</b> a ele: cada pedido desconta as unidades na hora, o cancelamento devolve, o site avisa “Os 3 últimos!” e mostra “Esgotado” quando zera. Produto sem item aqui vende sem limite. Itens que não são vendidos (gelo, copos…) ficam só com controle manual.</p></div>
+  const card=i=>{const s=stStatus(i),u=unitLabel(i.unit),site=i.product_id?(i.quantity<=0?'Esgotado':i.quantity<=3?(i.quantity===1?'Último!':`Os ${i.quantity} últimos!`):null):null;
+    return `<article class="stock-card is-${s.key}" data-item="${i.id}">
+    <div class="stock-head"><div><h4>${esc(i.name)}</h4><small>${i.product_id?'Ligado ao cardápio: '+esc(i.product_name||i.name):'Sem ligação com o cardápio (controle manual)'}</small></div><span class="stock-badge ${s.key}">${s.label}</span></div>
+    <div class="stock-qty">${nf(i.quantity)}<span>${esc(u)}</span></div>
+    <div class="stock-meter"><div class="stock-meter-track"><i class="${s.key}" style="width:${s.percent}%"></i></div><small>${Math.round(s.percent)}% da quantidade cheia</small></div>
+    <ul class="stock-facts"><li>Vendas: <strong>${i.product_id?'descontam sozinhas':'não descontam'}</strong></li>${site?`<li>No site: <strong>${site}</strong></li>`:''}<li>Gasto em compras: <strong>${brl(i.purchase_total_cents)}</strong></li>${i.minimum>0?`<li>Avisar com <strong>${nf(i.minimum)} ${esc(u)}</strong></li>`:''}</ul>
+    <div class="stock-actions"><button type="button" class="p" data-act="buy">＋ Adicionar compra</button><button type="button" data-act="count">Corrigir saldo</button><button type="button" data-act="out">Retirar / perda</button><button type="button" data-act="edit">Editar</button><button type="button" class="d" data-act="del">Excluir</button></div></article>`};
+  const list=()=>{const q=sFilter.q.trim().toLowerCase(),r=items.filter(i=>(!q||i.name.toLowerCase().includes(q))&&(sFilter.st==='all'||stStatus(i).key===sFilter.st));
+    $('#stl').innerHTML=!items.length?'<p class="stock-empty">Nenhum produto cadastrado. Use o formulário acima para começar.</p>':r.length?`<div class="stock-list">${r.map(card).join('')}</div>`:'<p class="stock-empty">Nenhum produto encontrado com esse filtro.</p>'};
+  $('#body').innerHTML=`<div class="inv">
+  <div class="inv-intro"><span class="eyebrow">CONTROLE SIMPLES</span><h2>Estoque</h2><p class="muted">Cadastre cada produto, informe quanto tem e acompanhe o saldo pelo medidor. Os pedidos descontam sozinhos.</p></div>
+  <div class="stats"><div class="stat"><span>Produtos cadastrados</span><strong>${items.length}</strong></div><div class="stat"><span>Estoque acabando</span><strong>${low}</strong></div><div class="stat"><span>Esgotados</span><strong>${empty}</strong></div><div class="stat"><span>Gasto em compras</span><strong>${brl(spent)}</strong></div></div>
+  <div class="inv-card"><h3>＋ Cadastrar produto</h3><form id="sform" class="inv-form">
+    <label>Nome do produto<input id="sn" list="sn-l" required minlength="2" placeholder="Ex.: Heineken Latão" autocomplete="off"><datalist id="sn-l">${data.products.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist></label>
+    <label>Quantidade que tem<input id="sq0" type="number" min="0" step="any" required placeholder="Ex.: 24"></label>
+    <label>Unidade do estoque<select id="su"><option value="un">Unidades</option><option value="kg">Quilos (kg)</option><option value="g">Gramas (g)</option><option value="l">Litros (L)</option><option value="ml">Mililitros (ml)</option></select></label>
+    <label>Quanto gastou na compra? (R$)<input id="sp" type="number" min="0" step="0.01" placeholder="Ex.: 85,00"></label>
+    <label>Alertar quando restar<input id="sm" type="number" min="0" step="any" placeholder="Opcional, na unidade do estoque"></label>
+    <div class="full"><button class="p" id="sadd">Cadastrar produto</button><button type="button" id="sbulk">Contar vários produtos de uma vez</button></div></form>
+    <p class="muted" style="margin:12px 0 0">Se o nome for igual ao de um produto do cardápio (ex.: Heineken Latão), o estoque fica <strong>ligado</strong> a ele: cada pedido desconta as unidades na hora, o cancelamento devolve, o site avisa “Os 3 últimos!” e mostra “Esgotado” quando zera. Produto do cardápio sem item aqui vende sem limite. Itens que não são vendidos (gelo, copos…) ficam só com controle manual.</p></div>
   <div id="sbk"></div>
-  <div class="box"><b>O que tenho no estoque?</b><p class="muted">O medidor mostra quanto resta da quantidade cheia. Amarelo: está acabando. Vermelho: esgotado. Use “Editar” para ajustar o alerta e reiniciar o medidor.</p>
-  <div class="grid" style="grid-template-columns:2fr 1fr"><input id="sf" type="search" placeholder="Buscar item…" value="${esc(sFilter.q)}"><select id="ss">${[['all','Todos'],['low','Acabando'],['empty','Esgotados'],['good','Estoque bom']].map(o=>`<option value="${o[0]}" ${o[0]===sFilter.st?'selected':''}>${o[1]}</option>`).join('')}</select></div></div>
-  <div id="stl"></div>
-  <div class="box"><b>Movimentações recentes</b>${mv.length?`<div class="tw"><table><thead><tr><th>Data</th><th>Item</th><th>Tipo</th><th>Quantidade</th><th>Detalhe</th></tr></thead><tbody>${mv.slice(0,40).map(m=>`<tr><td>${new Date(m.created_at).toLocaleString('pt-BR')}</td><td>${esc(m.item_name)}</td><td>${MV[m.kind]||m.kind}</td><td>${MS[m.kind]||''}${nf(m.quantity)} ${UL[m.item_unit]||''}</td><td>${esc(m.reason||'—')}${m.kind==='entrada'&&m.total_cents?' · '+brl(m.total_cents):''}${m.supplier?' · '+esc(m.supplier):''}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">As movimentações aparecerão aqui.</p>'}</div>`;
+  <div class="inv-card"><h3>O que tenho no estoque?</h3><p class="muted">O medidor mostra quanto resta da quantidade cheia. Amarelo: está acabando. Vermelho: esgotado. Use “Editar” para ajustar o alerta e reiniciar o medidor.</p>
+    <div class="inv-bar"><input id="sf" type="search" placeholder="Buscar produto…" aria-label="Buscar produto no estoque" value="${esc(sFilter.q)}"><select id="ss" aria-label="Filtrar por situação">${[['all','Todos'],['low','Acabando'],['empty','Esgotados'],['good','Estoque bom']].map(o=>`<option value="${o[0]}" ${o[0]===sFilter.st?'selected':''}>${o[1]}</option>`).join('')}</select></div>
+    <div id="stl"></div></div>
+  <div class="inv-card"><h3>Movimentações recentes</h3>${mv.length?`<div class="tw"><table><thead><tr><th>Data</th><th>Produto</th><th>Tipo</th><th>Quantidade</th><th>Detalhe</th></tr></thead><tbody>${mv.slice(0,40).map(m=>`<tr><td>${new Date(m.created_at).toLocaleString('pt-BR')}</td><td>${esc(m.item_name)}</td><td>${MV[m.kind]||m.kind}</td><td>${MS[m.kind]||''}${nf(m.quantity)} ${esc(unitLabel(m.item_unit))}</td><td>${esc(m.reason||'—')}${m.kind==='entrada'&&m.total_cents?' · '+brl(m.total_cents):''}${m.supplier?' · '+esc(m.supplier):''}</td></tr>`).join('')}</tbody></table></div>`:'<p class="stock-empty">As movimentações aparecerão aqui.</p>'}</div></div>`;
   list();
   $('#sf').oninput=e=>{sFilter.q=e.target.value;list()};$('#ss').onchange=e=>{sFilter.st=e.target.value;list()};
-  $('#su').onchange=()=>{$('#sq0').placeholder=$('#su').value==='un'?'Ex.: 24':'Ex.: 2,5'};
-  $('#sadd').onclick=async()=>{const b=$('#sadd');b.disabled=true;$('#e').textContent='';
-    try{const r=await api('estoque/items',{method:'POST',body:JSON.stringify({name:$('#sn').value,unit:$('#su').value,quantity:$('#sq0').value,purchaseTotal:$('#sp').value,minimumQuantity:$('#sm').value})});
-      alert(r.linked?'Cadastrado e ligado ao produto do cardápio: cada pedido vai descontar sozinho.':'Cadastrado. Não há produto do cardápio com esse nome, então o controle é manual.');reload()}
-    catch(e){$('#e').textContent=e.message;b.disabled=false}};
+  $('#su').onchange=()=>{$('#sq0').step=$('#su').value==='un'?'1':'any'};
+  $('#sform').onsubmit=async e=>{e.preventDefault();const b=$('#sadd');b.disabled=true;
+    try{const r=await api('estoque/items',{method:'POST',body:JSON.stringify({name:$('#sn').value.trim(),unit:$('#su').value,quantity:$('#sq0').value,purchaseTotal:$('#sp').value,minimumQuantity:$('#sm').value})});
+      notify(r.linked?'Produto cadastrado e ligado ao cardápio: cada pedido desconta sozinho.':'Produto cadastrado. Sem produto do cardápio com esse nome, o controle é manual.');await estoque()}
+    catch(x){notify(x.message,'error');b.disabled=false}};
   $('#sbulk').onclick=()=>{
     if($('#sbk').innerHTML){$('#sbk').innerHTML='';return}
-    if(!data.products.length){$('#e').textContent='Todos os produtos do cardápio já têm item de estoque.';return}
+    if(!data.products.length){notify('Todos os produtos do cardápio já têm item de estoque.','error');return}
     const cats=[...new Set(data.products.map(p=>p.category))];
-    $('#sbk').innerHTML=`<div class="box"><b>Contagem de vários produtos</b><p class="muted">Digite quantas unidades você tem de cada produto. <b>Deixe em branco</b> os que não quer controlar: eles continuam vendendo sem limite. Atenção: produto com quantidade <b>0</b> aparece como “Esgotado” no site.</p><div class="cnt">${cats.map(c=>`<h4>${esc(c)}</h4>`+data.products.filter(p=>p.category===c).map(p=>`<div class="row"><span>${esc(p.name)}</span><input data-bp="${p.id}" inputmode="numeric" placeholder="—" aria-label="Quantidade de ${esc(p.name)}"></div>`).join('')).join('')}</div><button class="p" id="bsave">Salvar contagem</button><button id="bcancel" style="margin-left:8px">Fechar</button><div class="err" id="be"></div></div>`;
+    $('#sbk').innerHTML=`<div class="inv-card"><h3>Contagem de vários produtos</h3><p class="muted">Digite quantas unidades você tem de cada produto. <strong>Deixe em branco</strong> os que não quer controlar: eles continuam vendendo sem limite. Atenção: produto com quantidade <strong>0</strong> aparece como “Esgotado” no site.</p><div class="cnt">${cats.map(c=>`<h4>${esc(c)}</h4>`+data.products.filter(p=>p.category===c).map(p=>`<div class="row"><span>${esc(p.name)}</span><input data-bp="${p.id}" type="number" min="0" step="1" inputmode="numeric" placeholder="—" aria-label="Quantidade de ${esc(p.name)}"></div>`).join('')).join('')}</div><div class="stock-dialog-actions" style="justify-content:flex-start"><button class="p" id="bsave">Salvar contagem</button><button id="bcancel">Fechar</button></div></div>`;
     $('#bcancel').onclick=()=>{$('#sbk').innerHTML=''};
     $('#bsave').onclick=async()=>{const rows=[...document.querySelectorAll('[data-bp]')].filter(i=>i.value.trim()!=='').map(i=>({productId:+i.dataset.bp,quantity:i.value}));
-      try{const r=await api('estoque/bulk',{method:'POST',body:JSON.stringify({rows})});alert(r.created+' item(ns) cadastrado(s).');reload()}catch(e){$('#be').textContent=e.message}};
+      try{const r=await api('estoque/bulk',{method:'POST',body:JSON.stringify({rows})});notify(r.created+' produto(s) cadastrado(s) no estoque.');await estoque()}catch(x){notify(x.message,'error')}};
+    $('#sbk').scrollIntoView({behavior:'smooth',block:'start'});
   };
-  const byId=id=>items.find(i=>String(i.id)===String(id));
-  $('#stl').onclick=e=>{const btn=e.target.closest('[data-act]');if(!btn)return;const item=byId(btn.closest('[data-i]').dataset.i);if(!item)return;
-    const u=UL[item.unit]||item.unit,mode=item.unit==='un'?'numeric':'decimal',mvPost=(type,v)=>api('estoque/movements',{method:'POST',body:JSON.stringify({itemId:item.id,type,...v})}).then(reload);
-    ({buy:()=>ask('Adicionar compra — '+item.name,[{name:'quantity',label:'Quantidade comprada ('+u+')',mode,ph:'Ex.: 24'},{name:'totalPaid',label:'Valor pago no total (R$)',mode:'decimal',ph:'Opcional'},{name:'supplier',label:'Fornecedor',ph:'Opcional'}],'Adicionar',v=>mvPost('entrada',v)),
-      count:()=>ask('Corrigir saldo — '+item.name,[{note:'Informe quanto existe de verdade agora. A diferença entra no histórico como conferência, sem contar como compra.'},{name:'quantity',label:'Quantidade atual ('+u+')',mode,value:item.quantity},{name:'reason',label:'Observação',ph:'Opcional'}],'Corrigir',v=>mvPost('conferencia',v)),
-      out:()=>ask('Retirar / perda — '+item.name,[{name:'type',label:'O que aconteceu',options:[['saida','Retirada (uso ou consumo do bar)'],['perda','Perda (quebra, vencimento)']]},{name:'quantity',label:'Quantidade ('+u+')',mode},{name:'reason',label:'Observação',ph:'Opcional'}],'Registrar',v=>{const t=v.type;delete v.type;return mvPost(t,v)}),
-      edit:()=>ask('Editar — '+item.name,[{name:'name',label:'Nome',value:item.name},{name:'unit',label:'Unidade',value:item.unit,options:item.product_id?[['un','Unidades (ligado ao cardápio)']]:[['un','Unidades'],['kg','Quilos (kg)'],['g','Gramas (g)'],['l','Litros (L)'],['ml','Mililitros (ml)']]},{name:'minimum',label:'Alertar quando restar ('+u+')',mode:'decimal',value:item.minimum||''},{name:'capacity',label:'Quantidade cheia = 100% do medidor',mode:'decimal',value:Math.max(item.capacity,item.quantity)},{note:'Trocar kg↔g ou L↔ml converte o saldo automaticamente.'}],'Salvar',v=>api('estoque/items/'+item.id,{method:'PATCH',body:JSON.stringify(v)}).then(reload)),
-      del:async()=>{if(!confirm('Excluir “'+item.name+'” do estoque? O histórico fica guardado e o produto volta a vender sem controle.'))return;try{await api('estoque/items/'+item.id,{method:'DELETE'});reload()}catch(x){alert(x.message)}}
-    })[btn.dataset.act]()};
+  $('#stl').onclick=async e=>{const btn=e.target.closest('[data-act]');if(!btn)return;const item=sItems.find(i=>String(i.id)===btn.closest('[data-item]').dataset.item),act=ACTIONS[btn.dataset.act];
+    if(!item||!act){notify('Produto não encontrado. Atualize a página.','error');return}
+    btn.disabled=true;try{if(await act(item)){notify(DONE[btn.dataset.act](item));await estoque()}}catch(x){notify(x.message||'Não foi possível concluir a ação.','error')}finally{btn.disabled=false}};
 }
+
 token?shell():login();
 </script>
 </body>
