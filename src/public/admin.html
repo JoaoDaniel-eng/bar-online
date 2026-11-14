@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Painel — Bar On-line do Cruzeiro</title>
+<style>
+:root{--blue:#2d6bff;--amber:#ffb020;--panel:#07102b;--line:rgba(45,107,255,.4);--muted:#9aa6c4;--foam:#f7f1e3}
+*{box-sizing:border-box;margin:0}
+body{background:#000;color:var(--foam);font:16px/1.45 system-ui,sans-serif;padding:16px;max-width:900px;margin:0 auto}
+h1{font-size:22px;margin-bottom:12px}
+button,input,select{font:inherit;color:inherit}
+input,select{width:100%;min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#000}
+button{cursor:pointer;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
+button.p{background:var(--amber);color:#1a1100;border:0;font-weight:600}
+button.d{color:#ff8a8a}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button.on{background:var(--blue);border-color:var(--blue)}
+.box{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:var(--panel)}
+.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tag{padding:2px 10px;border-radius:99px;font-size:13px;background:#000;border:1px solid var(--amber);color:var(--amber)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
+.muted{color:var(--muted);font-size:14px}
+.err{color:#ff8a8a;min-height:1.3em;margin-top:8px}
+a{color:#7ea6ff}
+</style>
+</head>
+<body>
+<h1>Painel — Bar On-line do Cruzeiro</h1>
+<div id="app"></div>
+<script>
+const $=s=>document.querySelector(s);
+const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+let token=sessionStorage.getItem('bdc_admin')||'',tab='orders',timer;
+async function api(path,opt={}){
+  const r=await fetch('/api/admin/'+path,{...opt,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401&&path!=='login'){token='';sessionStorage.removeItem('bdc_admin');login();throw new Error(j.error)}
+  if(!r.ok)throw new Error(j.error||'Erro');return j;
+}
+function login(){
+  clearInterval(timer);
+  $('#app').innerHTML=`<div class="box" style="max-width:360px"><label for="pw">Senha do painel</label><input id="pw" type="password" autocomplete="current-password"><div class="err" id="e"></div><button class="p" id="go" style="width:100%">Entrar</button></div>`;
+  const go=async()=>{try{const j=await api('login',{method:'POST',body:JSON.stringify({password:$('#pw').value})});token=j.token;sessionStorage.setItem('bdc_admin',token);shell()}catch(e){$('#e').textContent=e.message}};
+  $('#go').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};
+}
+function shell(){
+  $('#app').innerHTML=`<div class="tabs">${[['orders','Pedidos'],['products','Produtos'],['brands','Marcas'],['zones','Bairros']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('')}<button id="out" style="margin-left:auto">Sair</button></div><div id="body"></div>`;
+  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;shell()});
+  $('#out').onclick=()=>{token='';sessionStorage.removeItem('bdc_admin');login()};
+  clearInterval(timer);
+  ({orders,products,brands,zones})[tab]();
+}
+const ST=['novo','preparando','saiu','entregue','cancelado'];
+async function orders(){
+  const load=async()=>{
+    const rows=await api('orders');
+    $('#body').innerHTML=rows.length?rows.map(o=>`<div class="box"><div class="top"><b>#${o.id} · ${esc(o.customer_name)}</b><span class="muted">${new Date(o.created_at).toLocaleString('pt-BR')}</span></div>
+    <div class="muted">${esc(o.address)} — ${esc(o.zone)} · <a href="https://wa.me/55${esc(o.phone.replace(/\D/g,'').replace(/^55/,''))}">${esc(o.phone)}</a></div>
+    <ul style="margin:8px 0 8px 18px">${o.items.map(i=>`<li>${i.qty}x ${esc(i.name)}</li>`).join('')}</ul>
+    ${o.notes?`<div class="muted">Obs.: ${esc(o.notes)}</div>`:''}
+    <div class="top" style="align-items:center"><span>${o.payment}${o.change_for?' · troco p/ '+esc(o.change_for):''} · entrega ${brl(o.fee_cents)} · <b>${brl(o.total_cents)}</b></span>
+    <select data-o="${o.id}" style="width:auto">${ST.map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}</select></div></div>`).join(''):'<p class="muted">Nenhum pedido ainda.</p>';
+    document.querySelectorAll('[data-o]').forEach(s=>s.onchange=()=>api('orders/'+s.dataset.o,{method:'PATCH',body:JSON.stringify({status:s.value})}));
+  };
+  await load();timer=setInterval(()=>{if(!document.activeElement||document.activeElement.tagName!=='SELECT')load().catch(()=>{})},20000);
+}
+async function products(){
+  const rows=await api('products');
+  const form=(p={})=>`<div class="grid"><input placeholder="Nome" data-f="name" value="${esc(p.name)}"><input placeholder="Categoria" data-f="category" value="${esc(p.category)}"><input placeholder="Marca (ex.: Skol)" data-f="brand" value="${esc(p.brand)}"><input placeholder="Preço (ex.: 4,50)" data-f="price" value="${p.price_cents!=null?(p.price_cents/100).toFixed(2).replace('.',','):''}"><input placeholder="Descrição" data-f="description" value="${esc(p.description)}"><input placeholder="URL da foto (opcional)" data-f="image_url" value="${esc(p.image_url)}"></div>`;
+  $('#body').innerHTML=`<div class="box"><b>Novo produto</b>${form()}<button class="p" id="add">Adicionar</button><div class="err" id="e"></div></div>`+rows.map(p=>`<div class="box" data-p="${p.id}">${form(p)}<label class="muted"><input type="checkbox" data-f="active" ${p.active?'checked':''} style="width:auto;min-height:0"> Disponível no cardápio</label><div class="top" style="margin-top:8px"><button class="p" data-save>Salvar</button><button class="d" data-del>Excluir</button></div></div>`).join('');
+  const read=el=>{const o={};el.querySelectorAll('[data-f]').forEach(i=>o[i.dataset.f]=i.type==='checkbox'?i.checked:i.value);return o};
+  $('#add').onclick=async()=>{try{const o=read($('#add').parentElement);o.active=true;await api('products',{method:'POST',body:JSON.stringify(o)});products()}catch(e){$('#e').textContent=e.message}};
+  document.querySelectorAll('[data-p]').forEach(b=>{
+    b.querySelector('[data-save]').onclick=async e=>{try{await api('products/'+b.dataset.p,{method:'PUT',body:JSON.stringify(read(b))});e.target.textContent='Salvo ✓'}catch(x){alert(x.message)}};
+    b.querySelector('[data-del]').onclick=async()=>{if(confirm('Excluir este produto?')){await api('products/'+b.dataset.p,{method:'DELETE'});products()}};
+  });
+}
+async function brands(){
+  const j=await fetch('/api/config').then(r=>r.json());
+  $('#body').innerHTML=`<div class="box"><b>Marca</b><div class="grid"><input id="bn" placeholder="Nome (ex.: Skol)"><input id="bl" placeholder="URL da logo (opcional)"><input id="bk" placeholder="Cor (ex.: #f2d21c)"></div><button class="p" id="ba">Salvar marca</button><div class="err" id="e"></div><p class="muted">Se a marca já existir, ela é atualizada. Sem logo, aparece um selo colorido com as iniciais. Para usar imagem própria, coloque o arquivo em src/public/brands/ e informe /brands/skol.png. No cadastro do produto, escreva o mesmo nome da marca.</p></div>`+j.brands.map(b=>`<div class="box top" style="align-items:center"><span>${esc(b.name)} <span class="muted">${esc(b.color)}</span></span><button class="d" data-b="${b.id}">Excluir</button></div>`).join('');
+  $('#ba').onclick=async()=>{try{await api('brands',{method:'POST',body:JSON.stringify({name:$('#bn').value,logo_url:$('#bl').value,color:$('#bk').value})});brands()}catch(e){$('#e').textContent=e.message}};
+  document.querySelectorAll('[data-b]').forEach(b=>b.onclick=async()=>{await api('brands/'+b.dataset.b,{method:'DELETE'});brands()});
+}
+async function zones(){
+  const j=await fetch('/api/config').then(r=>r.json());
+  $('#body').innerHTML=`<div class="box"><b>Bairro e taxa de entrega</b><div class="grid"><input id="zn" placeholder="Bairro"><input id="zf" placeholder="Taxa (ex.: 6,00)"></div><button class="p" id="za">Salvar bairro</button><div class="err" id="e"></div><p class="muted">Se o bairro já existir, a taxa é atualizada.</p></div>`+j.zones.map(z=>`<div class="box top" style="align-items:center"><span>${esc(z.name)} — ${brl(z.fee_cents)}</span><button class="d" data-z="${z.id}">Excluir</button></div>`).join('');
+  $('#za').onclick=async()=>{try{await api('zones',{method:'POST',body:JSON.stringify({name:$('#zn').value,fee:$('#zf').value})});zones()}catch(e){$('#e').textContent=e.message}};
+  document.querySelectorAll('[data-z]').forEach(b=>b.onclick=async()=>{await api('zones/'+b.dataset.z,{method:'DELETE'});zones()});
+}
+token?shell():login();
+</script>
+</body>
+</html>
