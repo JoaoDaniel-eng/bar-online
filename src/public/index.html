@@ -79,7 +79,9 @@ textarea{min-height:70px;resize:vertical}
 .ok{text-align:center;padding:10px 0}
 .ok .disp{font-size:36px;color:var(--ok)}
 .hint{font-size:14px;color:var(--muted);margin-top:10px}
-footer{max-width:720px;margin:36px auto 0;padding:0 16px;color:var(--muted);font-size:14px;text-align:center}
+footer{max-width:720px;margin:36px auto 0;padding:0 16px 28px;color:var(--muted);font-size:14px;text-align:center}
+.admin-access{display:inline-flex;align-items:center;justify-content:center;min-height:42px;margin-top:14px;padding:0 18px;border:1px solid var(--line);border-radius:999px;color:var(--blue-soft);font-weight:600;text-decoration:none;background:var(--panel);transition:background .2s,border-color .2s}
+.admin-access:hover,.admin-access:focus-visible{background:rgba(45,107,255,.16);border-color:var(--blue-soft)}
 .sw{padding:14px 16px 0;max-width:720px;margin:0 auto}
 .sbtn{width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 18px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--muted);text-align:left}
 .sbtn svg,.sfield svg{width:22px;height:22px;flex:none;stroke:var(--blue-soft)}
@@ -126,7 +128,7 @@ footer{max-width:720px;margin:36px auto 0;padding:0 16px;color:var(--muted);font
 <div class="sw"><button class="sbtn" id="openSearch" aria-label="Buscar bebidas e marcas"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Busque por produtos ou marcas</button></div>
 <nav class="chips" id="chips" aria-label="Categorias"></nav>
 <main id="menu"><div class="empty">Carregando cardápio…</div></main>
-<footer id="foot">Beba com moderação. Venda proibida para menores de 18 anos.</footer>
+<footer id="foot">Beba com moderação. Venda proibida para menores de 18 anos.<br><a class="admin-access" href="/admin.html" aria-label="Acessar painel administrativo da loja">Painel administrativo</a></footer>
 
 <div class="search" id="search" role="dialog" aria-label="Buscar itens">
   <div class="shead"><button id="sBack" aria-label="Voltar">←</button><h2>Buscar itens</h2></div>
