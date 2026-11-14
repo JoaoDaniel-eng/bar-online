@@ -89,6 +89,11 @@ textarea{min-height:70px;resize:vertical}
 .pay input:checked+span{color:var(--amber-text)}
 .pay label:has(input:checked){border-color:var(--amber-text);box-shadow:0 0 12px rgba(255,176,32,.4)}
 .err{color:var(--danger);margin-top:10px;min-height:1.4em}
+.fe{margin:6px 2px 0;font-size:14px;font-weight:600;color:var(--danger)}.fe[hidden]{display:none}
+input.bad,select.bad,textarea.bad{border:2px solid var(--danger);box-shadow:0 0 0 4px rgba(255,107,107,.22)}
+.pay.bad label{border-color:var(--danger);box-shadow:0 0 0 2px rgba(255,107,107,.3)}
+.savechk{display:flex;gap:10px;align-items:flex-start;margin:14px 0 0;font-weight:500;font-size:14.5px;line-height:1.35;cursor:pointer}
+.savechk input{width:20px;min-height:20px;height:20px;margin-top:1px;flex:none;accent-color:var(--blue)}
 .close{float:right;width:44px;height:44px;font-size:28px;color:var(--muted)}
 .gate{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;place-items:center;text-align:center;padding:24px}
 .gate.open{display:grid}
@@ -381,12 +386,13 @@ function showCheckout(){
   open(`<button class="close" aria-label="Fechar">×</button><h2>Entrega e pagamento</h2>
   ${me?'':`<div class="perk"><span>💙 Crie sua conta e ganhe pontos a cada pedido entregue.</span><button type="button" class="linkbtn" id="perkGo">Entrar</button></div>`}
   <form id="f" novalidate>
-  <label for="n">Seu nome</label><input id="n" autocomplete="name" value="${esc(d.name)}">
-  <label for="p">WhatsApp com DDD</label><input id="p" type="tel" inputmode="tel" autocomplete="tel" value="${esc(d.phone)}">
-  <label for="z">Bairro</label><select id="z"><option value="">Escolha o bairro</option>${cfg.zones.map(z=>`<option value="${esc(z.name)}" data-f="${z.fee_cents}" ${d.zone===z.name?'selected':''}>${esc(z.name)} — entrega ${brl(z.fee_cents)}</option>`).join('')}</select>
-  <label for="a">Endereço com número e complemento</label><input id="a" autocomplete="street-address" value="${esc(d.address)}">
-  <label>Pagamento na entrega</label>
-  <div class="pay"><label><input type="radio" name="pay" value="pix"><span>Pix</span></label><label><input type="radio" name="pay" value="cartao"><span>Cartão</span></label><label><input type="radio" name="pay" value="dinheiro"><span>Dinheiro</span></label></div>
+  <label for="n">Seu nome</label><input id="n" autocomplete="name" aria-describedby="e-n" value="${esc(d.name)}"><div class="fe" id="e-n" role="alert" hidden></div>
+  <label for="p">WhatsApp com DDD</label><input id="p" type="tel" inputmode="tel" autocomplete="tel" aria-describedby="e-p" value="${esc(d.phone)}"><div class="fe" id="e-p" role="alert" hidden></div>
+  <label for="z">Bairro</label><select id="z" aria-describedby="e-z"><option value="">Escolha o bairro</option>${cfg.zones.map(z=>`<option value="${esc(z.name)}" data-f="${z.fee_cents}" ${d.zone===z.name?'selected':''}>${esc(z.name)} — entrega ${brl(z.fee_cents)}</option>`).join('')}</select><div class="fe" id="e-z" role="alert" hidden></div>
+  <label for="a">Endereço com número e complemento</label><input id="a" autocomplete="street-address" aria-describedby="e-a" value="${esc(d.address)}"><div class="fe" id="e-a" role="alert" hidden></div>
+  <label class="savechk" for="sv"><input type="checkbox" id="sv" ${store.get('bdc_saveaddr',true)?'checked':''}><span>${me?'Salvar estes dados de entrega na minha conta':'Salvar meus dados de entrega neste aparelho'} para os próximos pedidos</span></label>
+  <label id="paylbl">Pagamento na entrega</label>
+  <div class="pay" id="payg" role="radiogroup" aria-labelledby="paylbl" aria-describedby="e-pay"><label><input type="radio" name="pay" value="pix"><span>Pix</span></label><label><input type="radio" name="pay" value="cartao"><span>Cartão</span></label><label><input type="radio" name="pay" value="dinheiro"><span>Dinheiro</span></label></div><div class="fe" id="e-pay" role="alert" hidden></div>
   <div id="chg" hidden><label for="c">Troco para quanto?</label><input id="c" inputmode="decimal" placeholder="Ex.: 100"></div>
   <label for="o">Observações (opcional)</label><textarea id="o"></textarea>
   <label for="cp">Cupom de desconto (opcional)</label>
@@ -419,15 +425,35 @@ function showCheckout(){
   if(pendingCoupon){$('#cp').value=pendingCoupon;pendingCoupon='';$('#cpb').click()}
   if(st&&!st.open){$('#err').textContent=st.message;$('#send').disabled=true}
   document.querySelectorAll('[name=pay]').forEach(r=>r.onchange=()=>{$('#chg').hidden=r.value!=='dinheiro'||!r.checked});
+  /* Validação: marca em vermelho o que faltou, explica embaixo do campo e leva a tela até o primeiro. */
+  const RULES=[['n',()=>$('#n').value.trim().length>=2,'Informe seu nome.'],
+    ['p',()=>$('#p').value.replace(/\D/g,'').length>=10,'Informe seu WhatsApp com DDD. Ex.: (21) 99999-9999.'],
+    ['z',()=>!!$('#z').value,'Escolha o bairro de entrega.'],
+    ['a',()=>$('#a').value.trim().length>=5,'Informe o endereço com número e complemento.'],
+    ['pay',()=>!!document.querySelector('[name=pay]:checked'),'Escolha a forma de pagamento.']];
+  const fld=k=>k==='pay'?$('#payg'):$('#'+k);
+  const mark=(k,msg)=>{const el=fld(k),fe=$('#e-'+k);el.classList.toggle('bad',!!msg);if(k!=='pay')el.setAttribute('aria-invalid',msg?'true':'false');fe.textContent=msg||'';fe.hidden=!msg};
+  ['n','p','a'].forEach(k=>$('#'+k).addEventListener('input',()=>mark(k,'')));
+  $('#z').addEventListener('change',()=>mark('z',''));
+  document.querySelectorAll('[name=pay]').forEach(r=>r.addEventListener('change',()=>mark('pay','')));
   $('#f').onsubmit=async e=>{
     e.preventDefault();const err=$('#err');err.textContent='';
+    const bad=RULES.filter(r=>!r[1]());RULES.forEach(r=>mark(r[0],r[1]()?'':r[2]));
+    if(bad.length){const el=fld(bad[0][0]);
+      err.textContent=bad.length>1?'Faltam alguns dados: preencha os campos em vermelho.':'Falta um dado: preencha o campo em vermelho.';
+      el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+      if(bad[0][0]!=='pay')el.focus({preventScroll:true});return}
     const pay=(document.querySelector('[name=pay]:checked')||{}).value;
     const body={name:$('#n').value,phone:$('#p').value,zone:$('#z').value,address:$('#a').value,payment:pay,change_for:$('#c').value,notes:$('#o').value,coupon:cp?cp.code:'',items:Object.entries(cart).map(([id,qty])=>({id,qty}))};
     const btn=$('#send');btn.disabled=true;btn.textContent='Enviando…';
     try{
       const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json',...(ctoken?{Authorization:'Bearer '+ctoken}:{})},body:JSON.stringify(body)});
       const j=await r.json();if(!r.ok){const er=new Error(j.error||'Não foi possível enviar.');er.stock=!!j.stock;throw er}
-      store.set('bdc_cust',{name:body.name,phone:body.phone,zone:body.zone,address:body.address});
+      const keep=$('#sv').checked;store.set('bdc_saveaddr',keep);
+      if(keep){
+        store.set('bdc_cust',{name:body.name,phone:body.phone,zone:body.zone,address:body.address});
+        if(ctoken&&me)try{me=await capi('me',{method:'PATCH',body:JSON.stringify({name:body.name,zone:body.zone,address:body.address})})}catch(x2){}
+      }else store.set('bdc_cust',{});
       cart={};render();done(j,body);refreshProducts();if(ctoken)loadMe();
     }catch(x){
       if(x.stock){await refreshProducts();showCart(x.message);return}   // acabou enquanto o cliente comprava: volta ao carrinho já corrigido

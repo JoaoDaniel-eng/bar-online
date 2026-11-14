@@ -9,6 +9,7 @@ const func = require('./funcionamento');
 const cupons = require('./cupons');
 const estoque = require('./estoque');
 const clientes = require('./clientes');
+const backup = require('./backup');
 
 (function loadEnv() {
   const p = require('path').join(__dirname, '..', '.env');
@@ -32,7 +33,10 @@ const pool = new Pool({ connectionString: DATABASE_URL, ssl: local ? false : { r
 const clienteAuth = clientes.createAuth(SECRET);
 const app = express();
 app.disable('x-powered-by');
-app.use(express.json({ limit: '5mb' }));
+const jsonSmall = express.json({ limit: '5mb' });
+// O envio de backup (/api/admin/backup/restore) tem parser próprio, com limite maior (veja backup.js).
+app.use((req, res, next) => req.path === '/api/admin/backup/restore' ? next() : jsonSmall(req, res, next));
+app.use('/api', (req, res, next) => { backup.touch(); next(); }); // há movimento: o backup diário pode rodar (sem acordar o banco à toa)
 
 const wrap = fn => (req, res) => fn(req, res).catch(e => { console.error(e); res.status(500).json({ error: 'Erro interno. Tente novamente.' }); });
 const clip = (v, n) => String(v ?? '').trim().slice(0, n);
@@ -89,6 +93,7 @@ async function initDb() {
   await pool.query(cupons.SCHEMA);
   await pool.query(estoque.SCHEMA);
   await pool.query(clientes.SCHEMA);
+  await pool.query(backup.SCHEMA);
   const { rows } = await pool.query('SELECT COUNT(*)::int AS n FROM products');
   const catalogo = require('./catalogo');
   if (rows[0].n === 0) await catalogo.load(pool);
@@ -440,9 +445,10 @@ app.use('/api/admin/customers', clientes.createAdminRouter({ pool, auth, wrap })
 app.use('/api/admin/coupons', cupons.createAdminRouter({ pool, auth, wrap }));
 app.use('/api/admin/cash', caixa.createRouter({ pool, auth, wrap, clip, setPaused }));
 app.use('/api/admin/estoque', estoque.createRouter({ pool, auth, wrap, clip }));
+app.use('/api/admin/backup', backup.createRouter({ pool, auth, wrap, clip, onRestored: () => { memo.clear(); imgCache.clear(); imgBytes = 0; } }));
 
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], setHeaders: (res, f) => { if (/\.(png|jpe?g|webp|svg)$/i.test(f)) res.set('Cache-Control', 'public, max-age=86400'); } }));
 app.get('/healthz', (req, res) => res.send('ok'));
 
-initDb().then(() => app.listen(PORT, () => console.log('Bar On-line do Cruzeiro rodando na porta ' + PORT)))
+initDb().then(() => { backup.startAuto(pool); return app.listen(PORT, () => console.log('Bar On-line do Cruzeiro rodando na porta ' + PORT)); })
   .catch(e => { console.error('Falha ao iniciar o banco:', e.message); process.exit(1); });

@@ -108,6 +108,11 @@ button.danger{background:#a72e43;border:0;color:#fff;font-weight:600}
 .cnt{max-height:55vh;overflow:auto;border:1px solid var(--line);border-radius:10px;margin:10px 0}.cnt .row{align-items:center;padding:6px 10px}.cnt input{width:96px;min-height:38px;text-align:right}.cnt h4{padding:8px 10px;background:#000;color:var(--amber);position:sticky;top:0}
 @media(max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:28px}}
 @media(max-width:620px){.wrap{padding:24px 14px 50px}.site-top{padding:12px 14px}.store-link{padding:0 16px;min-height:42px;font-size:13px}.kpis{gap:10px}.kpi{padding:16px}.kpi strong{font-size:22px}.head-actions{width:100%}.head-actions button{flex:1 1 auto;min-height:46px}.stats{grid-template-columns:1fr 1fr}.inv-form{grid-template-columns:1fr}.inv-bar select{flex:1 1 100%}.stock-actions{grid-template-columns:1fr 1fr}.stock-dialog-actions{flex-direction:column-reverse}.stock-dialog-actions button{width:100%}}
+.bk-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}.bk-actions label{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:14px}.bk-actions input[type=checkbox]{width:auto;min-height:0}
+.bk-note{border-left:3px solid var(--amber);padding:8px 12px;margin:12px 0 0;color:var(--muted);font-size:14px;background:rgba(255,176,32,.06);border-radius:0 10px 10px 0}
+.bk-prev{margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.3);font-size:14px}.bk-prev[hidden]{display:none}.bk-prev b{color:#fff}
+.bk-row-actions{display:flex;gap:6px;flex-wrap:wrap}.bk-row-actions button{min-height:34px;padding:0 12px;font-size:13px}
+.bk-file{padding:10px;min-height:48px}
 @media print{body *{display:none}}
 </style>
 </head>
@@ -148,14 +153,14 @@ async function kpis(){
 function shell(){
   $('#app').innerHTML=`<div class="page-head"><div><span class="eyebrow">GESTÃO DO BAR</span><h1>Painel do Bar do Cruzeiro</h1></div><div class="head-actions"><button id="snd"></button><button id="pause">…</button><button id="out">Sair</button></div></div>
   <div class="kpis" id="kpis"><div class="kpi"><span>Faturamento do mês</span><strong>…</strong></div><div class="kpi"><span>Hoje</span><strong>…</strong></div><div class="kpi"><span>Pedidos em andamento</span><strong>…</strong></div><div class="kpi"><span>Estoque acabando</span><strong>…</strong></div></div>
-  <div class="tabs">${[['dash','Resumo'],['orders','Pedidos'+(newCount?' ('+newCount+')':'')],['products','Produtos'],['estoque','Estoque'+(stockAlert?' ('+stockAlert+')':'')],['brands','Marcas'],['zones','Bairros'],['reports','Relatórios'],['coupons','Cupons'],['customers','Clientes'],['cash','Caixa'],['settings','Funcionamento']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('')}</div><div id="body"></div>`;
+  <div class="tabs">${[['dash','Resumo'],['orders','Pedidos'+(newCount?' ('+newCount+')':'')],['products','Produtos'],['estoque','Estoque'+(stockAlert?' ('+stockAlert+')':'')],['brands','Marcas'],['zones','Bairros'],['reports','Relatórios'],['coupons','Cupons'],['customers','Clientes'],['cash','Caixa'],['settings','Funcionamento'],['backup','Backup']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('')}</div><div id="body"></div>`;
   document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;shell()});
   $('#pause').onclick=togglePause;sndLabel();
   $('#snd').onclick=()=>{try{localStorage.setItem('bdc_snd',snd()?'off':'on')}catch(e){}sndLabel()};
   $('#out').onclick=()=>{clearInterval(wtimer);wtimer=null;token='';sessionStorage.removeItem('bdc_admin');login()};
   clearInterval(timer);kpis();
   if(!wtimer){watch();watchStock();wtimer=setInterval(()=>{watch();if(++wt%4===0){watchStock();kpis()}},15000)}
-  ({dash,orders,products,estoque,brands,zones,reports,coupons,customers,cash,settings})[tab]();
+  ({dash,orders,products,estoque,brands,zones,reports,coupons,customers,cash,settings,backup})[tab]();
   refreshPause();
 }
 const ST=['novo','preparando','saiu','entregue','cancelado'];
@@ -591,6 +596,97 @@ async function estoque(){
   $('#stl').onclick=async e=>{const btn=e.target.closest('[data-act]');if(!btn)return;const item=sItems.find(i=>String(i.id)===btn.closest('[data-item]').dataset.item),act=ACTIONS[btn.dataset.act];
     if(!item||!act){notify('Produto não encontrado. Atualize a página.','error');return}
     btn.disabled=true;try{if(await act(item)){notify(DONE[btn.dataset.act](item));await estoque()}}catch(x){notify(x.message||'Não foi possível concluir a ação.','error')}finally{btn.disabled=false}};
+}
+
+/* ---------- Backup ---------- */
+const BK_TABLES={products:'Produtos',brands:'Marcas',zones:'Bairros',orders:'Pedidos',customers:'Clientes',customer_favorites:'Favoritos dos clientes',coupons:'Cupons',inventory_items:'Itens do estoque',inventory_movements:'Movimentos do estoque',cash_sessions:'Caixas (aberturas)',cash_movements:'Movimentos do caixa',settings:'Configurações'};
+const BK_KIND={auto:'Automática',manual:'Manual','antes-de-restaurar':'Antes de restaurar'};
+const bkName=t=>BK_TABLES[t]||t;
+const bkSize=b=>b>=1048576?(b/1048576).toFixed(1).replace('.',',')+' MB':Math.max(1,Math.round(b/1024))+' KB';
+const bkWhen=d=>new Date(d).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+function bkExpired(){token='';sessionStorage.removeItem('bdc_admin');login()}
+async function bkSave(path,btn){
+  const old=btn.textContent;btn.disabled=true;btn.textContent='Preparando…';
+  try{
+    const r=await fetch('/api/admin/backup/'+path,{headers:{Authorization:'Bearer '+token}});
+    if(r.status===401){bkExpired();return}
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'Não foi possível gerar o arquivo.')}
+    const name=(/filename="([^"]+)"/.exec(r.headers.get('Content-Disposition')||'')||[])[1]||'backup.json';
+    const url=URL.createObjectURL(await r.blob()),a=document.createElement('a');
+    a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+    notify('Arquivo baixado: '+name);
+  }catch(x){notify(x.message,'error')}finally{btn.disabled=false;btn.textContent=old}
+}
+async function bkPost(path,body,word){
+  const r=await fetch('/api/admin/backup/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token,'X-Confirm':word},body});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401){bkExpired();throw new Error('Sessão expirada. Entre novamente.')}
+  if(!r.ok)throw new Error(j.error||'Não foi possível restaurar o backup.');
+  return j;
+}
+async function bkRestore(description,send){
+  let out=null;
+  const ok=await openDialog({eyebrow:'RESTAURAR BACKUP',title:'Restaurar este backup?',description,
+    fields:[{name:'c',label:'Para confirmar, digite RESTAURAR',type:'text',required:true,placeholder:'RESTAURAR'}],submitLabel:'Restaurar agora',danger:true,
+    onSubmit:async v=>{if(v.c.trim().toUpperCase()!=='RESTAURAR')throw new Error('Digite a palavra RESTAURAR para confirmar.');out=await send('RESTAURAR')}});
+  if(ok&&out){notify(`Backup restaurado: ${out.rows} registros em ${out.tables} tabelas. O que existia antes ficou guardado em uma cópia de segurança.`);shell()}
+}
+const BK_WARN='Isto SUBSTITUI todos os dados atuais (pedidos, produtos, clientes, estoque, caixa e configurações) pelos do backup. Antes, o sistema guarda uma cópia do que existe agora, mas o ideal é restaurar sem pedidos em andamento.';
+async function backup(){
+  const s=await api('backup/summary');
+  const snaps=s.snapshots,total=s.tables.reduce((n,t)=>n+t.rows,0);
+  $('#body').innerHTML=`<div class="box"><b>Baixar backup completo</b>
+    <p class="muted">Um arquivo .json com tudo: produtos, marcas, bairros, pedidos, clientes, cupons, estoque, caixa e configurações. Guarde no seu computador ou no Google Drive.</p>
+    <div class="bk-actions"><button class="p" id="bk-dl">⬇ Baixar backup</button><label><input type="checkbox" id="bk-img" checked> Incluir fotos e logos enviadas pelo painel</label></div>
+    <p class="bk-note">Sem as fotos o arquivo fica bem menor, mas ao restaurar as fotos enviadas pelo painel não voltam. O arquivo tem dados dos clientes (nome, telefone, endereço): não compartilhe.</p>
+    <div class="bk-actions"><button id="bk-csv">⬇ Pedidos em planilha (CSV)</button><span class="muted">Abre no Excel e no Google Planilhas. Serve para consulta, não para restaurar.</span></div></div>
+
+    <div class="box"><b>Cópias guardadas no sistema</b>
+    <p class="muted">O sistema faz uma cópia automática por dia (quando há movimento) e guarda as ${s.keep.auto} últimas. Você também pode criar uma agora, por exemplo antes de mexer em muitos produtos.</p>
+    <div class="bk-actions"><button class="p" id="bk-snap">＋ Criar cópia agora</button><span class="muted">${snaps.length} cópia(s) · ${bkSize(s.snapshots_bytes)} · banco todo: ${bkSize(s.db_bytes)}</span></div>
+    ${snaps.length?`<div class="tw"><table><thead><tr><th>Data</th><th>Tipo</th><th>Tamanho</th><th>Registros</th><th></th></tr></thead><tbody>${snaps.map(x=>`<tr data-id="${x.id}" data-when="${esc(bkWhen(x.created_at))}"><td>${bkWhen(x.created_at)}${x.note&&x.kind==='manual'&&x.note!=='Cópia manual'?`<div class="muted">${esc(x.note)}</div>`:''}</td><td>${esc(BK_KIND[x.kind]||x.kind)}</td><td>${bkSize(x.size_bytes)}</td><td>${x.rows_count}</td>
+      <td><div class="bk-row-actions"><button data-a="dl">Baixar</button><button data-a="rs">Restaurar</button><button class="d" data-a="del">Excluir</button></div></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted" style="margin-top:12px">Ainda não há cópias. A primeira automática aparece em breve, ou crie uma agora.</p>'}
+    <p class="bk-note">Estas cópias ficam no mesmo banco de dados do site. Protegem contra erros (apagou um produto, mudou preços sem querer), mas não contra a perda do banco inteiro: por isso baixe o arquivo de vez em quando.</p></div>
+
+    <div class="box"><b>Restaurar de um arquivo</b>
+    <p class="muted">Escolha um arquivo de backup baixado aqui no painel.</p>
+    <input type="file" id="bk-file" class="bk-file" accept=".json,application/json">
+    <div class="bk-prev" id="bk-prev" hidden></div>
+    <div class="bk-actions"><button class="d" id="bk-go" hidden>Restaurar este arquivo…</button></div></div>
+
+    <div class="box"><b>O que entra no backup</b>
+    <p class="muted">${total} registros hoje.</p>
+    ${s.tables.map(t=>`<div class="row"><span>${esc(bkName(t.name))}</span><span>${t.rows}</span></div>`).join('')}</div>`;
+
+  $('#bk-dl').onclick=e=>bkSave('download?images='+($('#bk-img').checked?'1':'0'),e.currentTarget);
+  $('#bk-csv').onclick=e=>bkSave('orders.csv',e.currentTarget);
+  $('#bk-snap').onclick=async e=>{
+    const b=e.currentTarget;b.disabled=true;b.textContent='Criando…';
+    try{await api('backup/snapshots',{method:'POST',body:JSON.stringify({note:'Cópia manual'})});notify('Cópia criada.');await backup()}
+    catch(x){notify(x.message,'error');b.disabled=false;b.textContent='＋ Criar cópia agora'}
+  };
+  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=async()=>{
+    const tr=b.closest('tr'),id=tr.dataset.id,when=tr.dataset.when;
+    if(b.dataset.a==='dl')return bkSave('snapshots/'+id+'/download',b);
+    if(b.dataset.a==='rs')return bkRestore(`Cópia de ${when}. ${BK_WARN}`,w=>bkPost('snapshots/'+id+'/restore','{}',w));
+    if(await openDialog({eyebrow:'EXCLUIR CÓPIA',title:'Excluir esta cópia?',description:`A cópia de ${when} será apagada do sistema. Isso não afeta os dados atuais do site.`,submitLabel:'Excluir cópia',danger:true,
+      onSubmit:()=>api('backup/snapshots/'+id,{method:'DELETE'})})){notify('Cópia excluída.');await backup()}
+  });
+  let fileText=null,fileMeta=null;
+  $('#bk-file').onchange=async e=>{
+    const f=e.target.files[0],prev=$('#bk-prev'),go=$('#bk-go');fileText=fileMeta=null;go.hidden=true;
+    if(!f){prev.hidden=true;return}
+    prev.hidden=false;prev.textContent='Lendo o arquivo…';
+    try{
+      const text=await f.text(),j=JSON.parse(text);
+      if(j.app!=='bar-online-cruzeiro'||!j.tables||typeof j.tables!=='object')throw new Error('Este arquivo não é um backup do Bar On-line do Cruzeiro.');
+      fileText=text;fileMeta=j;
+      const names=Object.keys(j.tables).filter(t=>Array.isArray(j.tables[t]));
+      prev.innerHTML=`<b>Backup de ${esc(bkWhen(j.created_at))}</b> · ${esc(bkSize(f.size))}<br>${names.map(t=>`${esc(bkName(t))}: ${j.tables[t].length}`).join(' · ')}${j.images===false?'<br><span class="over">Este backup foi feito sem fotos: as fotos enviadas pelo painel não voltam.</span>':''}`;
+      go.hidden=false;
+    }catch(x){prev.innerHTML=`<span class="short">${esc(x instanceof SyntaxError?'Não consegui ler o arquivo. Use o .json baixado pelo próprio painel.':x.message)}</span>`}
+  };
+  $('#bk-go').onclick=()=>{if(fileText)bkRestore(`Backup de ${bkWhen(fileMeta.created_at)}. ${BK_WARN}`,w=>bkPost('restore',fileText,w))};
 }
 
 token?shell():login();

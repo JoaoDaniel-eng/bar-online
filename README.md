@@ -30,6 +30,7 @@ Variáveis: `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `WHATSAPP_NUMBER
   - **No site:** com 3 ou menos unidades aparece "Os 3 últimos!" (2 → "Os 2 últimos!", 1 → "Último!"); com 0, "Esgotado" e não dá para comprar; o carrinho nunca passa do saldo.
   - **Sem controle:** produto do cardápio sem item de estoque vende sem limite, como antes. Cuidado: item ligado com saldo **0** aparece como Esgotado no site. Itens que não são vendidos (gelo, copos) ficam só com controle manual.
   - O aviso na aba mostra quantos itens estão acabando ou esgotados. Código em `src/estoque.js`; as tabelas `inventory_items` e `inventory_movements` e a coluna `orders.stock_used` (o que cada pedido descontou) são criadas sozinhas na primeira execução, sem apagar nada.
+- **Backup**: baixa um arquivo .json com todos os dados (com ou sem as fotos enviadas pelo painel), exporta os pedidos em CSV (Excel), guarda cópias dentro do próprio banco (1 automática por dia quando há movimento, as 5 últimas; mais as manuais e as feitas antes de restaurar) e restaura de uma cópia ou de um arquivo. Restaurar substitui os dados atuais, exige digitar RESTAURAR e antes guarda uma cópia do que existia, tudo dentro de uma transação (se algo falhar, nada muda). Lê a lista de tabelas do banco sozinho, então tabelas novas entram no backup sem alterar o código. A tabela `backups` é criada sozinha. O arquivo de backup tem dados de clientes (incluindo o hash das senhas): não compartilhe. Código em `src/backup.js`.
 - **Produtos** (com busca, fotos e ativar/desativar), **Marcas** e **Bairros** com taxa de entrega.
 
 ## Catálogo
@@ -70,3 +71,7 @@ Aba **Marcas** → no cartão da marca, escolha uma imagem (JPG, PNG ou WebP) e 
 - Painel → aba **Clientes**: lista com pedidos, gasto e pontos; "Nova senha" para quem esqueceu a senha; "Excluir" conta.
 - Pedidos feitos sem login continuam funcionando normalmente.
 - A sessão do cliente usa `SESSION_SECRET` (ou `ADMIN_PASSWORD`) para assinar o token: não troque esse valor depois de publicar, senão todos saem da conta.
+
+## Checkout (entrega)
+- Se faltar nome, WhatsApp com DDD, bairro, endereço ou forma de pagamento, o campo fica com contorno vermelho, aparece o aviso embaixo dele e a tela rola até o primeiro que falta. O aviso some quando o cliente corrige.
+- A caixinha **Salvar meus dados de entrega** vem marcada. Sem conta, os dados ficam só no aparelho (navegador) e já vêm preenchidos no próximo pedido. Com conta, nome, bairro e endereço também são salvos na conta. Desmarcada, nada é guardado (e o que estava no aparelho é apagado). A escolha fica lembrada.
