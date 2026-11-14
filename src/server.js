@@ -31,6 +31,33 @@ app.use(express.json({ limit: '5mb' }));
 const wrap = fn => (req, res) => fn(req, res).catch(e => { console.error(e); res.status(500).json({ error: 'Erro interno. Tente novamente.' }); });
 const clip = (v, n) => String(v ?? '').trim().slice(0, n);
 
+/* Cache em memória: evita bater no Neon a cada visita (e deixa o banco "dormir"). Limpa sozinho quando o admin altera algo. */
+const memo = new Map();
+const cached = (key, ttl, fn) => wrap(async (req, res) => {
+  let h = memo.get(key);
+  if (!h || Date.now() - h.t > ttl) { h = { t: Date.now(), v: await fn() }; memo.set(key, h); }
+  res.set('Cache-Control', 'public, max-age=30').json(h.v);
+});
+app.use('/api/admin', (req, res, next) => { if (req.method !== 'GET') res.on('finish', () => memo.clear()); next(); });
+
+/* Fotos enviadas pelo painel: servidas como arquivo (com cache longo no navegador), não dentro do JSON. */
+const imgCache = new Map(); let imgBytes = 0; const IMG_MAX = 40 * 1024 * 1024;
+async function sendImg(req, res, sql) {
+  const id = parseInt(req.params.id, 10), key = (sql.includes('products') ? 'p' : 'b') + ':' + id + ':' + String(req.query.v || '').slice(0, 20);
+  let hit = imgCache.get(key);
+  if (!hit) {
+    const d = (await pool.query(sql, [id])).rows[0]?.img || '';
+    const m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/s.exec(d);
+    if (!m) return res.status(404).end();
+    hit = { type: m[1], buf: Buffer.from(m[2], 'base64') };
+    imgCache.set(key, hit); imgBytes += hit.buf.length;
+    for (const [k, v] of imgCache) { if (imgBytes <= IMG_MAX) break; imgCache.delete(k); imgBytes -= v.buf.length; }
+  }
+  res.set({ 'Content-Type': hit.type, 'Cache-Control': 'public, max-age=31536000, immutable' }).send(hit.buf);
+}
+app.get('/img/p/:id', wrap((req, res) => sendImg(req, res, 'SELECT image_url AS img FROM products WHERE id=$1 AND image_ver>0')));
+app.get('/img/b/:id', wrap((req, res) => sendImg(req, res, 'SELECT logo_url AS img FROM brands WHERE id=$1 AND image_ver>0')));
+
 async function initDb() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
@@ -45,7 +72,11 @@ async function initDb() {
       subtotal_cents INTEGER NOT NULL, fee_cents INTEGER NOT NULL, total_cents INTEGER NOT NULL,
       status TEXT NOT NULL DEFAULT 'novo');
     CREATE TABLE IF NOT EXISTS brands (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL, logo_url TEXT DEFAULT '', color TEXT DEFAULT '#2d6bff', sort INTEGER NOT NULL DEFAULT 0);
-    ALTER TABLE products ADD COLUMN IF NOT EXISTS brand TEXT NOT NULL DEFAULT '';`);
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS brand TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS image_ver BIGINT NOT NULL DEFAULT 0;
+    ALTER TABLE brands ADD COLUMN IF NOT EXISTS image_ver BIGINT NOT NULL DEFAULT 0;
+    UPDATE products SET image_ver=1 WHERE image_ver=0 AND left(image_url,11)='data:image/';
+    UPDATE brands SET image_ver=1 WHERE image_ver=0 AND left(logo_url,11)='data:image/';`);
   const { rows } = await pool.query('SELECT COUNT(*)::int AS n FROM products');
   const catalogo = require('./catalogo');
   if (rows[0].n === 0) await catalogo.load(pool);
@@ -73,18 +104,18 @@ function scan(dir) {
 }
 
 /* ---------- Loja ---------- */
-app.get('/api/config', wrap(async (req, res) => {
+app.get('/api/config', cached('config', 60e3, async () => {
   const zones = (await pool.query('SELECT id,name,fee_cents FROM zones ORDER BY fee_cents,name')).rows;
   const logos = scan('brands');
-  const brands = (await pool.query('SELECT id,name,logo_url,color FROM brands ORDER BY sort,name')).rows
+  const brands = (await pool.query(`SELECT id,name,color,CASE WHEN image_ver>0 THEN '/img/b/'||id||'?v='||image_ver ELSE logo_url END AS logo_url FROM brands ORDER BY sort,name`)).rows
     .map(b => ({ ...b, logo_url: b.logo_url || logos[slug(b.name)] || '' }));
-  res.json({ name: STORE_NAME, whatsapp: WHATSAPP_NUMBER.replace(/\D/g, ''), zones, brands });
+  return { name: STORE_NAME, whatsapp: WHATSAPP_NUMBER.replace(/\D/g, ''), zones, brands };
 }));
 
-app.get('/api/products', wrap(async (req, res) => {
-  const { rows } = await pool.query('SELECT id,name,category,price_cents,description,image_url,brand FROM products WHERE active ORDER BY sort,id');
+app.get('/api/products', cached('products', 60e3, async () => {
+  const { rows } = await pool.query(`SELECT id,name,category,price_cents,description,brand,CASE WHEN image_ver>0 THEN '/img/p/'||id||'?v='||image_ver ELSE image_url END AS image_url FROM products WHERE active ORDER BY sort,id`);
   const imgs = scan('produtos');
-  res.json(rows.map(r => ({ ...r, image_url: r.image_url || imgs[slug(r.name)] || PRODUCT_IMAGE_URLS[slug(r.name)] || '' })));
+  return rows.map(r => ({ ...r, image_url: r.image_url || imgs[slug(r.name)] || PRODUCT_IMAGE_URLS[slug(r.name)] || '' }));
 }));
 
 app.post('/api/orders', wrap(async (req, res) => {
@@ -174,7 +205,7 @@ app.patch('/api/admin/orders/:id', auth, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 app.get('/api/admin/products', auth, wrap(async (req, res) => {
-  res.json((await pool.query('SELECT * FROM products ORDER BY sort,id')).rows);
+  res.json((await pool.query("SELECT id,name,category,price_cents,description,active,sort,brand,image_ver>0 AS has_upload,CASE WHEN image_ver>0 THEN '/img/p/'||id||'?v='||image_ver ELSE image_url END AS image_url FROM products ORDER BY sort,id")).rows);
 }));
 function prodBody(b) {
   const price = Math.round(parseFloat(String(b.price).replace(',', '.')) * 100);
@@ -189,8 +220,8 @@ app.post('/api/admin/products', auth, wrap(async (req, res) => {
 }));
 app.put('/api/admin/products/:id', auth, wrap(async (req, res) => {
   const v = prodBody(req.body || {}); if (!v) return res.status(400).json({ error: 'Preencha nome, categoria e preço.' });
-  if (Object.prototype.hasOwnProperty.call(req.body || {}, 'image_url')) {
-    await pool.query('UPDATE products SET name=$1,category=$2,price_cents=$3,description=$4,image_url=$5,active=$6,brand=$7 WHERE id=$8', [...v, parseInt(req.params.id, 10)]);
+  if (Object.prototype.hasOwnProperty.call(req.body || {}, 'image_url') && !String(req.body.image_url).startsWith('data:')) {
+    await pool.query('UPDATE products SET name=$1,category=$2,price_cents=$3,description=$4,image_url=$5,active=$6,brand=$7,image_ver=0 WHERE id=$8', [...v, parseInt(req.params.id, 10)]);
   } else {
     await pool.query('UPDATE products SET name=$1,category=$2,price_cents=$3,description=$4,active=$6,brand=$7 WHERE id=$8', [v[0],v[1],v[2],v[3],v[5],v[6],parseInt(req.params.id,10)]);
   }
@@ -202,13 +233,13 @@ app.put('/api/admin/products/:id/image', auth, wrap(async (req, res) => {
   if (!/^data:image\/(jpeg|png|webp);base64,/.test(data)) return res.status(400).json({ error: 'Envie uma imagem JPG, PNG ou WebP válida.' });
   if (data.length > 4_500_000) return res.status(413).json({ error: 'Imagem muito grande. Escolha uma foto menor.' });
   const id = parseInt(req.params.id, 10);
-  const result = await pool.query('UPDATE products SET image_url=$1 WHERE id=$2 RETURNING id', [data, id]);
+  const result = await pool.query('UPDATE products SET image_url=$1,image_ver=(extract(epoch from now())*1000)::bigint WHERE id=$2 RETURNING id', [data, id]);
   if (!result.rowCount) return res.status(404).json({ error: 'Produto não encontrado.' });
-  res.json({ ok: true, image_url: data });
+  res.json({ ok: true });
 }));
 app.delete('/api/admin/products/:id/image', auth, wrap(async (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const result = await pool.query("UPDATE products SET image_url='' WHERE id=$1 RETURNING id", [id]);
+  const result = await pool.query("UPDATE products SET image_url='',image_ver=0 WHERE id=$1 RETURNING id", [id]);
   if (!result.rowCount) return res.status(404).json({ error: 'Produto não encontrado.' });
   res.json({ ok: true });
 }));
@@ -230,14 +261,27 @@ app.post('/api/admin/brands', auth, wrap(async (req, res) => {
   const color = /^#[0-9a-fA-F]{6}$/.test(clip(req.body?.color, 7)) ? clip(req.body.color, 7) : '#2d6bff';
   if (!n) return res.status(400).json({ error: 'Informe o nome da marca.' });
   if (logo && !/^(\/|https?:\/\/)/.test(logo)) return res.status(400).json({ error: 'A logo deve começar com / ou https://' });
-  await pool.query('INSERT INTO brands (name,logo_url,color) VALUES ($1,$2,$3) ON CONFLICT (name) DO UPDATE SET logo_url=$2,color=$3', [n, logo, color]);
+  await pool.query("INSERT INTO brands (name,logo_url,color) VALUES ($1,$2::text,$3) ON CONFLICT (name) DO UPDATE SET logo_url=CASE WHEN $2::text='' THEN brands.logo_url ELSE $2::text END,image_ver=CASE WHEN $2::text='' THEN brands.image_ver ELSE 0 END,color=$3", [n, logo, color]);
+  res.json({ ok: true });
+}));
+app.put('/api/admin/brands/:id/logo', auth, wrap(async (req, res) => {
+  const data = String(req.body?.image_data || '');
+  if (!/^data:image\/(jpeg|png|webp);base64,/.test(data)) return res.status(400).json({ error: 'Envie uma imagem JPG, PNG ou WebP válida.' });
+  if (data.length > 1_000_000) return res.status(413).json({ error: 'Imagem muito grande. Escolha uma logo menor.' });
+  const r = await pool.query('UPDATE brands SET logo_url=$1,image_ver=(extract(epoch from now())*1000)::bigint WHERE id=$2 RETURNING id', [data, parseInt(req.params.id, 10)]);
+  if (!r.rowCount) return res.status(404).json({ error: 'Marca não encontrada.' });
+  res.json({ ok: true });
+}));
+app.delete('/api/admin/brands/:id/logo', auth, wrap(async (req, res) => {
+  const r = await pool.query("UPDATE brands SET logo_url='',image_ver=0 WHERE id=$1 RETURNING id", [parseInt(req.params.id, 10)]);
+  if (!r.rowCount) return res.status(404).json({ error: 'Marca não encontrada.' });
   res.json({ ok: true });
 }));
 app.delete('/api/admin/brands/:id', auth, wrap(async (req, res) => {
   await pool.query('DELETE FROM brands WHERE id=$1', [parseInt(req.params.id, 10)]); res.json({ ok: true });
 }));
 
-app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
+app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], setHeaders: (res, f) => { if (/\.(png|jpe?g|webp|svg)$/i.test(f)) res.set('Cache-Control', 'public, max-age=86400'); } }));
 app.get('/healthz', (req, res) => res.send('ok'));
 
 initDb().then(() => app.listen(PORT, () => console.log('Bar On-line do Cruzeiro rodando na porta ' + PORT)))

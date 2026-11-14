@@ -41,3 +41,12 @@ Aceita jpg, png, webp e svg. Não precisa reiniciar o servidor. A URL cadastrada
 4. A imagem é redimensionada e otimizada no navegador antes do envio. Use **Remover foto** para apagar a imagem enviada.
 
 As fotos enviadas ficam gravadas no campo `image_url` da tabela `products` no PostgreSQL/Neon (como imagem JPEG em base64). Assim, elas continuam disponíveis após novos deploys no Render e não dependem do disco efêmero do serviço. O limite de envio é de aproximadamente 3,3 MB por foto original já otimizada (o servidor aceita até 4,5 MB de conteúdo codificado). Para manter o banco leve, prefira fotos de produto com até 1.100 px no maior lado.
+
+## Trocar a logo das marcas pelo painel
+Aba **Marcas** → no cartão da marca, escolha uma imagem (JPG, PNG ou WebP) e clique em **Enviar logo**. Ela é reduzida no navegador (256 px) e guardada no banco, então não some em novos deploys. **Remover logo** apaga a enviada.
+
+## Desempenho (Render + Neon)
+- Fotos e logos enviadas pelo painel continuam no banco, mas são entregues como arquivo em `/img/p/ID` e `/img/b/ID`, com cache de 1 ano no navegador. As listas `/api/products` e `/api/config` carregam só o endereço da imagem, não a imagem.
+- Essas duas listas ficam 60 s em memória no servidor (limpas na hora quando você altera algo no painel), o que reduz as consultas ao Neon.
+- Imagens por link (https://...) não passam pelo seu servidor: o navegador do cliente baixa direto do site de origem.
+- Fotos de produto são reduzidas a 800 px antes do envio; logos, a 256 px.
