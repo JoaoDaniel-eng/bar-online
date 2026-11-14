@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;1,800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;1,800&family=Barlow:wght@400;500;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
@@ -46,7 +46,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 @media(max-width:760px){.hero-in{grid-template-columns:1fr;padding:30px 20px 24px;text-align:center}.hero .lead{margin-left:auto;margin-right:auto}.hero .cta,.hero .opennow{justify-content:center}.hero-art{min-height:0;order:-1}.hero-art img{height:min(46vh,380px)}.hero-art::before{width:min(72vw,300px)}}
 .chips{position:sticky;top:0;z-index:5;display:flex;gap:8px;overflow-x:auto;padding:12px 16px;background:rgba(0,0,0,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);scrollbar-width:none;padding-top:calc(12px + env(safe-area-inset-top,0px))}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:none;padding:8px 16px;border-radius:999px;border:1px solid var(--line);color:var(--blue-soft);font:italic 700 17px 'Barlow Condensed',sans-serif}
+.chip{flex:none;display:inline-flex;align-items:center;min-height:46px;padding:0 20px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--foam);font:600 15px Poppins,system-ui,sans-serif;text-decoration:none;white-space:nowrap}
 .chip.on{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 0 16px rgba(45,107,255,.6)}
 main{max-width:720px;margin:0 auto;padding:0 16px}
 .cat{font-size:30px;margin:28px 0 6px;color:var(--amber)}
