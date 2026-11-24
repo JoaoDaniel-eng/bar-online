@@ -35,14 +35,14 @@ const clienteAuth = clientes.createAuth(SECRET);
 const app = express();
 app.disable('x-powered-by');
 const jsonSmall = express.json({ limit: '5mb' });
-// O envio de backup (/api/admin/backup/restore) tem parser próprio, com limite maior (veja backup.js).
+
 app.use((req, res, next) => req.path === '/api/admin/backup/restore' ? next() : jsonSmall(req, res, next));
-app.use('/api', (req, res, next) => { backup.touch(); next(); }); // há movimento: o backup diário pode rodar (sem acordar o banco à toa)
+app.use('/api', (req, res, next) => { backup.touch(); next(); }); 
 
 const wrap = fn => (req, res) => fn(req, res).catch(e => { console.error(e); res.status(500).json({ error: 'Erro interno. Tente novamente.' }); });
 const clip = (v, n) => String(v ?? '').trim().slice(0, n);
 
-/* Cache em memória: evita bater no Neon a cada visita (e deixa o banco "dormir"). Limpa sozinho quando o admin altera algo. */
+
 const memo = new Map();
 const cached = (key, ttl, fn) => wrap(async (req, res) => {
   let h = memo.get(key);
@@ -51,7 +51,7 @@ const cached = (key, ttl, fn) => wrap(async (req, res) => {
 });
 app.use('/api/admin', (req, res, next) => { if (req.method !== 'GET') res.on('finish', () => memo.clear()); next(); });
 
-/* Fotos enviadas pelo painel: servidas como arquivo (com cache longo no navegador), não dentro do JSON. */
+
 const imgCache = new Map(); let imgBytes = 0; const IMG_MAX = 40 * 1024 * 1024;
 async function sendImg(req, res, sql) {
   const id = parseInt(req.params.id, 10), key = (sql.includes('products') ? 'p' : 'b') + ':' + id + ':' + String(req.query.v || '').slice(0, 20);
@@ -108,7 +108,7 @@ async function initDb() {
   }
 }
 
-/* Fotos automáticas: arquivo com o nome do produto/marca em public/produtos e public/brands */
+
 const slug = x => String(x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 function scan(dir) {
   const m = {};
@@ -121,7 +121,7 @@ function scan(dir) {
   return m;
 }
 
-/* Funcionamento: valores do painel (tabela settings) com os padrões de funcionamento.js; nome e WhatsApp caem no .env se não preenchidos. */
+
 async function getSettings() {
   const h = memo.get('settings');
   if (h && Date.now() - h.t < 30e3) return h.v;
@@ -139,7 +139,7 @@ const closedText = s => s.manual_closed === 'true'
   : `Estamos fechados agora. Funcionamos ${func.describeOpeningDays(s)}${s.opening_time === s.closing_time ? ', 24 horas' : ', das ' + s.opening_time + ' às ' + s.closing_time}.`;
 const freeMin = s => Math.round(Number(s.free_delivery_min || 0) * 100);
 
-/* ---------- Loja ---------- */
+
 app.get('/api/config', cached('config', 60e3, async () => {
   const zones = (await pool.query('SELECT id,name,fee_cents FROM zones WHERE active ORDER BY fee_cents,name')).rows;
   const logos = scan('brands');
@@ -150,7 +150,7 @@ app.get('/api/config', cached('config', 60e3, async () => {
     estimated_min: Number(st.estimated_minutes_min) || 0, estimated_max: Number(st.estimated_minutes_max) || 0 };
 }));
 
-/* Aberto/fechado agora: sempre fresco (sem cache do navegador) */
+
 app.get('/api/store', wrap(async (req, res) => {
   const st = await getSettings(), open = isOpenNow(st);
   res.set('Cache-Control', 'no-store').json({ open, manual_closed: st.manual_closed === 'true', message: open ? '' : closedText(st),
@@ -158,7 +158,7 @@ app.get('/api/store', wrap(async (req, res) => {
 }));
 
 app.get('/api/products', cached('products', 60e3, async () => {
-  // stock: unidades disponíveis quando o produto tem item de estoque ligado; null = sem controle (vende sem limite).
+  
   const { rows } = await pool.query(`SELECT p.id,p.name,p.category,p.price_cents,p.description,p.brand,CASE WHEN p.image_ver>0 THEN '/img/p/'||p.id||'?v='||p.image_ver ELSE p.image_url END AS image_url,
       FLOOR(i.quantity)::int AS stock
     FROM products p LEFT JOIN inventory_items i ON i.product_id=p.id AND i.active AND i.unit='un' WHERE p.active ORDER BY p.sort,p.id`);
@@ -197,10 +197,10 @@ app.post('/api/orders', wrap(async (req, res) => {
     if (r.error) return res.status(r.status).json({ error: r.error });
     discount = r.discountCents; couponCode = c.code;
   }
-  // Frete grátis vale o que o cliente paga pelas bebidas, já com o desconto do cupom.
+  
   const fee = freeMin(st) > 0 && subtotal - discount >= freeMin(st) ? 0 : zone.fee_cents;
   const total = subtotal - discount + fee;
-  // O pedido e a baixa do estoque acontecem juntos: se faltar unidade de algum item, nada é gravado.
+  
   const client = await pool.connect();
   let r;
   try {
@@ -217,11 +217,11 @@ app.post('/api/orders', wrap(async (req, res) => {
     }
     await client.query('COMMIT');
   } catch (e) { await client.query('ROLLBACK').catch(() => {}); throw e; } finally { client.release(); }
-  memo.delete('products'); // o saldo mudou: a loja precisa ver o estoque novo
+  memo.delete('products'); 
   res.json({ id: r.rows[0].id, subtotal_cents: subtotal, coupon_code: couponCode, discount_cents: discount, fee_cents: fee, free_delivery: fee === 0 && zone.fee_cents > 0, total_cents: total, items });
 }));
 
-/* ---------- Admin ---------- */
+
 const sign = exp => exp + '.' + crypto.createHmac('sha256', SECRET).update(String(exp)).digest('hex');
 function auth(req, res, next) {
   const t = (req.headers.authorization || '').replace('Bearer ', '');
@@ -242,7 +242,7 @@ app.post('/api/admin/login', (req, res) => {
   res.json({ token: sign(Date.now() + 12 * 3600e3) });
 });
 
-/* Resumo de vendas (fuso de Brasília). Pedidos cancelados não entram no faturamento. */
+
 const TZ = 'America/Sao_Paulo';
 app.get('/api/admin/stats', auth, wrap(async (req, res) => {
   const days = Math.min(90, Math.max(1, parseInt(req.query.days, 10) || 7));
@@ -270,7 +270,7 @@ app.get('/api/admin/stats', auth, wrap(async (req, res) => {
     payments: sortArr(pay, 5), zones: sortArr(zone, 5)
   });
 }));
-/* Relatórios (fuso de Brasília; cancelados não contam). Os dias são dias de calendário: "7 dias" = hoje + os 6 anteriores. */
+
 app.get('/api/admin/reports', auth, wrap(async (req, res) => {
   const days = Math.min(90, Math.max(1, parseInt(req.query.days, 10) || 30));
   const since = `(date_trunc('day', now() AT TIME ZONE '${TZ}') - (($1::int - 1) * interval '1 day')) AT TIME ZONE '${TZ}'`;
@@ -309,7 +309,7 @@ app.patch('/api/admin/orders/:id', auth, wrap(async (req, res) => {
   const st = clip(req.body?.status, 20);
   if (!['novo', 'preparando', 'saiu', 'entregue', 'cancelado'].includes(st)) return res.status(400).json({ error: 'Status inválido.' });
   const id = parseInt(req.params.id, 10);
-  // Cancelar devolve ao estoque o que o pedido tinha descontado; reativar um cancelado desconta de novo (e recusa se não houver mais).
+  
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -350,7 +350,7 @@ app.put('/api/admin/products/:id', auth, wrap(async (req, res) => {
 }));
 app.put('/api/admin/products/:id/image', auth, wrap(async (req, res) => {
   const data = String(req.body?.image_data || '');
-  // Uploads são armazenados no Neon para não desaparecerem em novos deploys do Render.
+  
   if (!/^data:image\/(jpeg|png|webp);base64,/.test(data)) return res.status(400).json({ error: 'Envie uma imagem JPG, PNG ou WebP válida.' });
   if (data.length > 4_500_000) return res.status(413).json({ error: 'Imagem muito grande. Escolha uma foto menor.' });
   const id = parseInt(req.params.id, 10);
@@ -420,7 +420,7 @@ app.delete('/api/admin/brands/:id', auth, wrap(async (req, res) => {
 
 app.get('/api/coupons/validate', cupons.validateHandler({ pool, wrap }));
 
-/* Funcionamento (aba do painel) */
+
 app.get('/api/admin/settings', auth, wrap(async (req, res) => { res.json(await getSettings()); }));
 app.patch('/api/admin/settings', auth, wrap(async (req, res) => {
   const b = req.body || {}, cur = await getSettings(), out = {};
@@ -440,7 +440,7 @@ app.patch('/api/admin/settings', auth, wrap(async (req, res) => {
 }));
 const setPaused = async (paused) => { await pool.query("INSERT INTO settings (key,value,updated_at) VALUES ('manual_closed',$1,now()) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value,updated_at=now()", [String(paused)]); memo.clear(); };
 
-/* Caixa: /api/admin/cash/* (já exige login) */
+
 app.use('/api/customers', clientes.createRouter({ pool, wrap, clip, SECRET }));
 app.use('/api/admin/customers', clientes.createAdminRouter({ pool, auth, wrap }));
 app.use('/api/admin/coupons', cupons.createAdminRouter({ pool, auth, wrap }));
@@ -448,7 +448,7 @@ app.use('/api/admin/cash', caixa.createRouter({ pool, auth, wrap, clip, setPause
 app.use('/api/admin/estoque', estoque.createRouter({ pool, auth, wrap, clip }));
 app.use('/api/admin/backup', backup.createRouter({ pool, auth, wrap, clip, onRestored: () => { memo.clear(); imgCache.clear(); imgBytes = 0; } }));
 
-/* Versão do deploy: no Render vem do commit; fora dele, de um hash do conteúdo do site. Entra no sw.js para o celular detectar atualização. */
+
 const BUILD = (() => {
   if (process.env.RENDER_GIT_COMMIT) return String(process.env.RENDER_GIT_COMMIT).slice(0, 10);
   const h = crypto.createHash('sha1');

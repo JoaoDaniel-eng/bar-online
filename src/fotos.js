@@ -1,4 +1,4 @@
-// npm run fotos -> mostra quais fotos/logos já existem e quais faltam; gera LISTA-DE-FOTOS.txt
+
 const fs = require('fs'), path = require('path');
 const { PRODUCTS, BRANDS } = require('./catalogo');
 const { PRODUCT_IMAGE_URLS } = require('./fotos-catalogo');

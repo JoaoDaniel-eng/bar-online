@@ -1,6 +1,4 @@
-/* Controle de caixa (abrir, lançar movimentos, fechar com conferência, histórico).
-   Mesma lógica do Açaí da Roça, adaptada ao bar: login por senha única e pagamento pix/cartao/dinheiro.
-   Valores sempre em centavos. */
+
 const { Router } = require('express');
 
 const MOVEMENT_KINDS = { suprimento: 'Entrada de dinheiro', sangria: 'Retirada (sangria)', despesa: 'Despesa paga do caixa' };
@@ -15,7 +13,7 @@ function parseCents(value, { allowZero = true } = {}) {
   return n;
 }
 
-// salesRows: [{ payment, orders, total_cents }] · movements: [{ kind, amount_cents }]
+
 function summarizeCash({ openingCents = 0, salesRows = [], movements = [] }) {
   const byMethod = Object.fromEntries(METHODS.map(m => [m, { orders: 0, totalCents: 0 }]));
   for (const r of salesRows) {
@@ -35,7 +33,7 @@ function summarizeCash({ openingCents = 0, salesRows = [], movements = [] }) {
     totalSalesCents: all.reduce((n, m) => n + m.totalCents, 0), totalOrders: all.reduce((n, m) => n + m.orders, 0)
   };
 }
-const cashDifference = (counted, expected) => Number(counted) - Number(expected); // + sobra, − falta
+const cashDifference = (counted, expected) => Number(counted) - Number(expected); 
 
 const SCHEMA = `
   CREATE TABLE IF NOT EXISTS cash_sessions (
@@ -56,7 +54,7 @@ function createRouter({ pool, auth, wrap, clip, setPaused }) {
   const router = Router();
   router.use(auth);
 
-  // Pedidos do período (sem cancelados) por forma de pagamento.
+  
   const salesBetween = async (db, from, to) => (await db.query(
     `SELECT payment, COUNT(*)::int AS orders, COALESCE(SUM(total_cents),0)::int AS total_cents
      FROM orders WHERE status <> 'cancelado' AND created_at >= $1 AND created_at <= $2 GROUP BY 1`, [from, to])).rows;
@@ -101,7 +99,7 @@ function createRouter({ pool, auth, wrap, clip, setPaused }) {
     res.status(201).json({ id: r.rows[0].id });
   }));
 
-  // Só dá para desfazer um lançamento enquanto o caixa dele está aberto.
+  
   router.delete('/movements/:id', wrap(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id < 1) return res.status(400).json({ error: 'Lançamento inválido.' });

@@ -1,4 +1,4 @@
-// npm run catalogo  ->  APAGA os produtos e marcas atuais e cadastra o catálogo de catalogo.js
+
 const { Pool } = require('pg');
 (function loadEnv() {
   const p = require('path').join(__dirname, '..', '.env');

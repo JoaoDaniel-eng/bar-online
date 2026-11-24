@@ -1,6 +1,4 @@
-/* Backup do painel: arquivo completo para baixar, restauração, cópias automáticas guardadas no banco e pedidos em CSV.
-   Funciona com QUALQUER tabela do banco (lê a lista sozinho), então tabelas novas entram no backup sem mexer aqui.
-   A tabela "backups" (as cópias guardadas) nunca entra no arquivo nem é apagada ao restaurar. */
+
 const express = require('express');
 const { Router } = express;
 const zlib = require('zlib');
@@ -8,7 +6,7 @@ const zlib = require('zlib');
 const APP = 'bar-online-cruzeiro';
 const FORMAT = 1;
 const SKIP = new Set(['backups']);
-const KEEP = { auto: 5, manual: 5, 'antes-de-restaurar': 3 }; // quantas cópias de cada tipo ficam guardadas
+const KEEP = { auto: 5, manual: 5, 'antes-de-restaurar': 3 }; 
 const DAY = 24 * 3600e3;
 const CONFIRM = 'RESTAURAR';
 const TZ = 'America/Sao_Paulo';
@@ -28,7 +26,7 @@ async function listTables(db) {
   return rows.map(r => r.table_name).filter(n => !SKIP.has(n));
 }
 
-/* Tabelas filhas dependem das pais (chave estrangeira): na restauração, as pais entram primeiro. */
+
 async function foreignKeys(db) {
   const { rows } = await db.query(
     `SELECT cc.relname AS child, pc.relname AS parent
@@ -42,7 +40,7 @@ function sortByDependency(names, edges) {
   const set = new Set(names), left = new Set(names), out = [];
   while (left.size) {
     const ready = [...left].filter(t => !edges.some(e => e.child === t && set.has(e.parent) && left.has(e.parent)));
-    if (!ready.length) { out.push(...left); break; } // ciclo: segue na ordem que está
+    if (!ready.length) { out.push(...left); break; } 
     for (const t of ready) { out.push(t); left.delete(t); }
   }
   return out;
@@ -62,7 +60,7 @@ async function exportAll(db, { images = true } = {}) {
   return { app: APP, format: FORMAT, created_at: new Date().toISOString(), images: !!images, counts, tables, total_rows: total };
 }
 
-/* ---------- Cópias guardadas no banco ---------- */
+
 let running = false;
 async function snapshot(db, kind, note) {
   if (running) { const e = new Error('Já existe um backup sendo gerado. Aguarde alguns segundos.'); e.status = 409; throw e; }
@@ -79,7 +77,7 @@ async function snapshot(db, kind, note) {
   } finally { running = false; }
 }
 
-/* Cópia automática: 1 por dia, só quando alguém está usando o site/painel (assim o Neon continua podendo "dormir"). */
+
 let lastTouch = Date.now(), timer = null;
 const touch = () => { lastTouch = Date.now(); };
 async function autoTick(db) {
@@ -94,7 +92,7 @@ function startAuto(db) {
   if (timer.unref) timer.unref();
 }
 
-/* ---------- Restauração ---------- */
+
 function httpError(status, message) { const e = new Error(message); e.status = status; return e; }
 
 async function restoreFrom(pool, backup) {
@@ -105,7 +103,7 @@ async function restoreFrom(pool, backup) {
   const present = dbTables.filter(t => Array.isArray(backup.tables[t]));
   if (!present.length) throw httpError(400, 'O arquivo não tem nenhuma tabela reconhecida.');
   const edges = await foreignKeys(pool);
-  // Tabela que não está no arquivo e depende de uma que vai ser limpa seria apagada junto: melhor recusar do que perder dados.
+  
   for (const t of dbTables.filter(x => !present.includes(x))) {
     if (!edges.some(e => e.child === t && present.includes(e.parent))) continue;
     const has = (await pool.query(`SELECT EXISTS (SELECT 1 FROM ${q(t)}) AS x`)).rows[0].x;
@@ -139,7 +137,7 @@ async function restoreFrom(pool, backup) {
       }
       await flush();
     }
-    // Contadores (ids automáticos) continuam depois do maior id restaurado.
+    
     for (const t of order) {
       const seqs = (await client.query(
         `SELECT a.attname AS col, pg_get_serial_sequence(format('%I.%I','public',$1::text), a.attname) AS seq
@@ -155,10 +153,10 @@ async function restoreFrom(pool, backup) {
   return { tables: order.length, rows: order.reduce((n, t) => n + backup.tables[t].length, 0), safetyId };
 }
 
-/* ---------- Pedidos em CSV (abre direto no Excel) ---------- */
+
 const csvCell = v => {
   let s = String(v ?? '');
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // evita que o Excel execute o texto como fórmula
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; 
   return /[";\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 };
 const money = c => (Number(c || 0) / 100).toFixed(2).replace('.', ',');
@@ -173,7 +171,7 @@ function ordersCsv(rows) {
   return '\uFEFF' + lines.join('\r\n') + '\r\n';
 }
 
-const stamp = () => new Date().toLocaleString('sv-SE', { timeZone: TZ }).slice(0, 16).replace(' ', '_').replace(':', '-'); // 2026-11-14_15-30
+const stamp = () => new Date().toLocaleString('sv-SE', { timeZone: TZ }).slice(0, 16).replace(' ', '_').replace(':', '-'); 
 function sendJson(res, obj, name) {
   const body = Buffer.from(JSON.stringify(obj));
   res.set({ 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': `attachment; filename="${name}"`, 'Cache-Control': 'no-store', 'Content-Length': body.length }).send(body);
@@ -233,13 +231,13 @@ function createRouter({ pool, auth, wrap, clip, onRestored = () => {} }) {
     try { done(res, await restoreFrom(pool, JSON.parse(zlib.gunzipSync(r.data).toString('utf8')))); } catch (e) { fail(res, e); }
   }));
 
-  // Arquivo enviado pelo painel. Parser próprio (o limite geral do servidor é de 5 MB, pequeno demais para backups com fotos).
+  
   router.post('/restore', express.json({ limit: '120mb' }), wrap(async (req, res) => {
     if (req.headers['x-confirm'] !== CONFIRM) return res.status(400).json({ error: `Digite ${CONFIRM} para confirmar.` });
     try { done(res, await restoreFrom(pool, req.body)); } catch (e) { fail(res, e); }
   }));
 
-  // Erros do envio do arquivo (grande demais, JSON quebrado) em português, em vez da página de erro padrão.
+  
   router.use((err, req, res, next) => {
     if (res.headersSent) return next(err);
     res.status(err.status === 413 ? 413 : 400).json({ error: err.status === 413 ? 'Arquivo grande demais (máximo de 120 MB).' : 'Não consegui ler o arquivo. Use o .json baixado pelo próprio painel.' });

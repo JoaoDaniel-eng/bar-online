@@ -81,7 +81,7 @@ a{color:var(--blue-soft)}
 table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08)}th{color:var(--muted);font-weight:500}
 .rb{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:3px 0;font-size:14px}.rb i{display:block;height:12px;background:var(--blue);border-radius:6px;min-width:3px}.rb.pk i{background:var(--amber)}.rb small{grid-column:2/4;color:var(--muted);margin-top:-4px}.badge{margin-left:6px;padding:1px 8px;border-radius:99px;font-size:12px;border:1px solid var(--amber);color:var(--amber)}
 .tw{overflow-x:auto}.small{min-height:34px;padding:0 10px;font-size:14px}
-/* Estoque (mesmo desenho do Açaí da Roça, nas cores do bar) */
+
 .eyebrow{display:block;color:var(--blue-soft);font-size:12px;font-weight:700;letter-spacing:.14em;margin-bottom:6px}
 .inv{display:grid;gap:16px}.inv-intro h2{font-size:26px;margin:2px 0}
 .inv-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}.inv-card h3{font-size:18px;margin-bottom:6px}.inv-card>.muted{margin-bottom:14px}
@@ -283,7 +283,7 @@ async function zones(){
 
 
 
-/* ---------- Cupons ---------- */
+
 async function coupons(){
   const list=await api('coupons');
   const desc=c=>c.discount_type==='percent'?c.discount_value+'% de desconto':brl(c.discount_value)+' de desconto';
@@ -314,7 +314,7 @@ async function coupons(){
 }
 
 
-/* ---------- Clientes ---------- */
+
 async function customers(){
   const list=await api('customers');
   const fp=v=>{const d=String(v||'').replace(/\D/g,'');return d.length===11?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d};
@@ -330,7 +330,7 @@ async function customers(){
     try{await api('customers/'+b.dataset.cd,{method:'DELETE'});customers()}catch(x){$('#e').textContent=x.message}});
 }
 
-/* ---------- Relatórios ---------- */
+
 const WD=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const PAYN={dinheiro:'Dinheiro',pix:'Pix',cartao:'Cartão'};
 function repRows(items,key,label,sub,peakKey){
@@ -342,7 +342,7 @@ async function reports(days){
   days=days||+(sessionStorage.getItem('bdc_rdays')||30);sessionStorage.setItem('bdc_rdays',days);
   const [d,per]=await Promise.all([api('reports?days='+days),api('reports/periods')]);
   const s=d.summary;
-  // Madrugada junto da noite: a lista de horas começa às 6h e termina às 5h.
+  
   const hours=[...d.hours].sort((a,b)=>((a.hour+18)%24)-((b.hour+18)%24));
   const pkH=hours.length?hours.reduce((a,h)=>h.orders>a.orders?h:a,hours[0]):null;
   const pkD=d.weekdays.length?d.weekdays.reduce((a,x)=>x.orders>a.orders?x:a,d.weekdays[0]):null;
@@ -358,7 +358,7 @@ async function reports(days){
   document.querySelectorAll('[data-rd]').forEach(b=>b.onclick=()=>reports(+b.dataset.rd));
 }
 
-/* ---------- Funcionamento ---------- */
+
 let paused=false;
 async function refreshPause(){
   try{
@@ -406,7 +406,7 @@ async function settings(){
   };
 }
 
-/* ---------- Caixa ---------- */
+
 const KIND={suprimento:'Entrada de dinheiro',sangria:'Retirada (sangria)',despesa:'Despesa paga do caixa'};
 const METHODS=['Dinheiro','Pix','Cartão'];
 let cashLast=null;
@@ -493,7 +493,7 @@ async function cash(){
   document.querySelectorAll('[data-cprint]').forEach(x=>x.onclick=()=>printCash(cashLast));
 }
 
-/* ---------- Estoque (mesmo desenho e fluxo do Açaí da Roça) ---------- */
+
 async function watchStock(){try{const s=await api('estoque/summary');stockAlert=s.low+s.empty;const t=document.querySelector('[data-t=estoque]');if(t)t.textContent='Estoque'+(stockAlert?' ('+stockAlert+')':'')}catch(e){}}
 const UL={un:'un.',kg:'kg',g:'g',l:'L',ml:'ml'},MV={entrada:'Compra',saida:'Retirada',perda:'Perda',conferencia:'Correção de saldo',ajuste:'Ajuste',venda:'Baixa de pedido',devolucao:'Devolução'},MS={entrada:'+',devolucao:'+',saida:'−',perda:'−',venda:'−'};
 const unitLabel=u=>UL[u]||u||'',nf=(n,max=3)=>Number(n||0).toLocaleString('pt-BR',{maximumFractionDigits:max}),toNum=v=>Number(String(v??'').trim().replace(',','.'));
@@ -502,10 +502,10 @@ const nonNeg=(v,l)=>{const n=toNum(v===''?0:v);if(!Number.isFinite(n)||n<0)throw
 let sFilter={q:'',st:'all'},sItems=[];
 function stStatus(i){const q=i.quantity,cap=Math.max(i.capacity||0,q),m=i.minimum||0,p=cap>0?Math.max(0,Math.min(100,q/cap*100)):0;
   if(q<=0)return{key:'empty',label:'Esgotado',percent:0};if((m>0&&q<=m)||p<=20)return{key:'low',label:'Está acabando',percent:p};return{key:'good',label:'Estoque bom',percent:p}}
-/* Aviso flutuante (visível mesmo com a página rolada) */
+
 let toastT;function notify(msg,type='ok'){let el=document.getElementById('stock-toast');if(!el){el=document.createElement('div');el.id='stock-toast';el.className='stock-toast';el.setAttribute('role','status');document.body.append(el)}
   el.textContent=msg;el.classList.toggle('error',type==='error');el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true},type==='error'?8000:4500)}
-/* Diálogo único para todas as ações: onSubmit pode lançar Error (a mensagem aparece nele e o digitado é mantido). Resolve true se concluiu. */
+
 function openDialog({eyebrow,title,description,fields=[],submitLabel='Salvar',danger=false,onSubmit}){
   return new Promise(resolve=>{
     const dlg=document.createElement('dialog');dlg.className='stock-dialog';
@@ -598,7 +598,7 @@ async function estoque(){
     btn.disabled=true;try{if(await act(item)){notify(DONE[btn.dataset.act](item));await estoque()}}catch(x){notify(x.message||'Não foi possível concluir a ação.','error')}finally{btn.disabled=false}};
 }
 
-/* ---------- Backup ---------- */
+
 const BK_TABLES={products:'Produtos',brands:'Marcas',zones:'Bairros',orders:'Pedidos',customers:'Clientes',customer_favorites:'Favoritos dos clientes',coupons:'Cupons',inventory_items:'Itens do estoque',inventory_movements:'Movimentos do estoque',cash_sessions:'Caixas (aberturas)',cash_movements:'Movimentos do caixa',settings:'Configurações'};
 const BK_KIND={auto:'Automática',manual:'Manual','antes-de-restaurar':'Antes de restaurar'};
 const bkName=t=>BK_TABLES[t]||t;

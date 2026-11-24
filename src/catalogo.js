@@ -1,4 +1,4 @@
-// Catálogo inicial do Bar On-line do Cruzeiro. Preços em reais.
+
 const C = {
   cerv: 'Cervejas', dest: 'Destilados', cach: 'Cachaças e Licores', vin: 'Vinhos e Festa',
   ene: 'Energéticos', drk: 'Drinks Prontos', ref: 'Refrigerantes e Água', conv: 'Conveniência'
@@ -39,9 +39,9 @@ const L = [
   [C.conv, 'Halls Preta', 5], [C.conv, 'Halls Uva', 5], [C.conv, 'Halls Verde', 5], [C.conv, 'Halls Menta', 5], [C.conv, 'Halls Melancia', 5],
   [C.conv, 'Trident', 5], [C.conv, 'KitKat', 5], [C.conv, 'Choquito', 5]
 ];
-// [categoria, nome, preço em centavos, descrição, marca]
+
 const PRODUCTS = L.map(p => [p[0], p[1], Math.round(p[2] * 100), '', p[3] || '']);
-// As cores abaixo são só placeholders; troque pelo painel (aba Marcas) e coloque a logo.
+
 const BRANDS = [['Brahma', '#c8281e'], ['Itaipava', '#d6a100'], ['Império', '#8a1c1c'], ['Antarctica', '#1f5fae'],
   ['Corona', '#0e2147'], ['Stella Artois', '#b3121b'], ['Amstel', '#a30f2d'], ['Lokal', '#2a7a4b'],
   ['Teresópolis', '#b8860b'], ['Heineken', '#0c7a3d']];

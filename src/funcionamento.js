@@ -1,5 +1,4 @@
-/* Funcionamento do bar: dias, horário (aceita passar da meia-noite), fechamento manual, previsão e frete grátis.
-   Sem nada configurado o bar fica aberto 24h, todos os dias (não bloqueia pedidos até você ajustar). */
+
 const TZ = 'America/Sao_Paulo';
 const DEFAULTS = {
   store_name: '', whatsapp_number: '', manual_closed: 'false',
@@ -17,8 +16,8 @@ function localParts(date) {
   return { day: { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[p.weekday], minutes: +p.hour * 60 + +p.minute };
 }
 
-// Horário igual na abertura e no fechamento = 24h. Fechamento menor que a abertura = passa da meia-noite
-// (a madrugada conta como parte do dia em que o bar abriu).
+
+
 function isOpenAt(date, s) {
   const { day, minutes } = localParts(date), open = toMin(s.opening_time), close = toMin(s.closing_time), days = daysOf(s);
   if (open === close) return days.has(day);
@@ -37,7 +36,7 @@ function describeOpeningDays(s) {
   return names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} e ${names.at(-1)}`;
 }
 
-// Devolve { value } ou { error } para um campo do painel.
+
 function validate(key, raw) {
   let v = String(raw ?? '').trim();
   const bad = error => ({ error });

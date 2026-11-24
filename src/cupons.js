@@ -1,6 +1,4 @@
-/* Cupons de desconto (código, % ou valor fixo, pedido mínimo, ativo/inativo).
-   Mesma regra do Açaí da Roça: o site só mostra o desconto, quem manda é o servidor, que recalcula no pedido.
-   Valores em centavos. O cupom de primeira compra do açaí não foi levado (depende de conta de cliente). */
+
 const { Router } = require('express');
 
 const SCHEMA = `
@@ -17,12 +15,12 @@ const INVALID = 'Cupom inválido ou indisponível.';
 const BRL = c => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const normalizeCode = v => String(v || '').trim().toUpperCase().replace(/\s+/g, '').slice(0, 40);
 
-// Percentual arredondado para baixo e nunca acima de 100%; valor fixo nunca passa do subtotal.
+
 function discountFor(subtotalCents, c) {
   const v = Number(c.discount_value);
   return c.discount_type === 'percent' ? Math.floor((subtotalCents * Math.min(100, v)) / 100) : Math.min(subtotalCents, v);
 }
-// { discountCents } ou { error, status }
+
 function apply(c, subtotalCents) {
   if (!c || !c.active) return { error: INVALID, status: 404 };
   if (subtotalCents < Number(c.min_subtotal_cents)) return { error: `Este cupom exige um subtotal mínimo de ${BRL(Number(c.min_subtotal_cents))}.`, status: 400 };
@@ -30,7 +28,7 @@ function apply(c, subtotalCents) {
 }
 const find = async (db, code) => (await db.query('SELECT id,code,discount_type,discount_value,min_subtotal_cents,active FROM coupons WHERE code=$1', [code])).rows[0];
 
-// Painel: /api/admin/coupons (já exige login)
+
 function createAdminRouter({ pool, auth, wrap }) {
   const router = Router();
   router.use(auth);
@@ -70,7 +68,7 @@ function createAdminRouter({ pool, auth, wrap }) {
   return router;
 }
 
-// Site: GET /api/coupons/validate?code=XXX&subtotalCents=1234 — no máximo 30 tentativas por IP a cada 10 min (evita adivinhar códigos).
+
 function validateHandler({ pool, wrap }) {
   const hits = new Map();
   return wrap(async (req, res) => {

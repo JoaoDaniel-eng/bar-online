@@ -1,6 +1,4 @@
-/* Contas de clientes: cadastro, login (telefone + senha), perfil, pedidos, favoritos, cupons e pontos do clube.
-   Sessão do cliente = token assinado (HMAC) guardado no navegador. Senhas ficam só como hash (scrypt).
-   Pontos: 1 ponto a cada R$ 1,00 em bebidas (já com desconto, sem a taxa de entrega) de pedidos ENTREGUES. */
+
 const crypto = require('crypto');
 const { Router } = require('express');
 
@@ -19,7 +17,7 @@ const SCHEMA = `
   ALTER TABLE coupons ADD COLUMN IF NOT EXISTS public BOOLEAN NOT NULL DEFAULT FALSE;`;
 
 const MIN_PASS = 6;
-/* Telefone só com dígitos, sem o 55 do país: 10 ou 11 números (DDD + número). */
+
 function normPhone(v) {
   let d = String(v || '').replace(/\D/g, '');
   if ((d.length === 12 || d.length === 13) && d.startsWith('55')) d = d.slice(2);
@@ -37,7 +35,7 @@ function createAuth(secret) {
   const key = 'cliente:' + secret;
   const sig = body => crypto.createHmac('sha256', key).update(body).digest('hex');
   const sign = id => { const body = id + '.' + (Date.now() + TOKEN_DAYS * 864e5); return body + '.' + sig(body); };
-  /* devolve o id do cliente ou null */
+  
   function verify(header) {
     const t = String(header || '').replace(/^Bearer\s+/i, '');
     const [id, exp, s] = t.split('.');
@@ -60,7 +58,7 @@ function createRouter({ pool, wrap, clip, SECRET }) {
   const router = Router();
   const A = createAuth(SECRET);
 
-  /* limite de tentativas por IP (cadastro e login) */
+  
   const hits = new Map();
   const limited = (req, max) => {
     const ip = String(req.headers['x-forwarded-for'] || req.ip || ''), now = Date.now();
@@ -95,7 +93,7 @@ function createRouter({ pool, wrap, clip, SECRET }) {
     res.json({ token: A.sign(c.id), profile: await loadProfile(pool, c.id) });
   }));
 
-  /* tudo daqui para baixo exige cliente logado */
+  
   router.use((req, res, next) => {
     (async () => {
       const id = A.verify(req.headers.authorization);
@@ -144,7 +142,7 @@ function createRouter({ pool, wrap, clip, SECRET }) {
     res.json({ ok: true });
   }));
 
-  /* Cupons que o cliente pode usar: os que o dono marcou como "visíveis para clientes" + os que o cliente já usou. */
+  
   router.get('/me/coupons', wrap(async (req, res) => {
     const rows = (await pool.query(
       `SELECT c.code,c.discount_type,c.discount_value,c.min_subtotal_cents,c.active,
@@ -157,7 +155,7 @@ function createRouter({ pool, wrap, clip, SECRET }) {
   return router;
 }
 
-/* Painel: lista de clientes e redefinição de senha (quem esqueceu a senha chama o bar). */
+
 function createAdminRouter({ pool, auth, wrap }) {
   const router = Router();
   router.use(auth);

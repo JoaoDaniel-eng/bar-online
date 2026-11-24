@@ -1,6 +1,6 @@
-// Fotografias de embalagens reais referenciadas no catálogo público da PMG Atacadista.
-// As imagens são servidas pelo CDN do fornecedor; não são arquivos locais do projeto.
-// Chaves devem corresponder ao slug do nome do produto no catálogo.
+
+
+
 const PRODUCT_IMAGE_URLS = {
   'brahma': 'https://sistema.pmg.com.br/ImagesUpload/webP_ID508_prd_2b617_508.webp',
   'itaipava': 'https://sistemapmg.blob.core.windows.net/uploads/0561c749-cb06-49b5-bf36-eb3bd0b270ae_1383_CERVEJA-ITAIPAVA-PILSEN-LATA-350-ML-%28PCT-12-LT%29.png',

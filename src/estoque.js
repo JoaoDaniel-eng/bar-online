@@ -1,15 +1,8 @@
-/* Controle de estoque (mesma ideia do Açaí da Roça, adaptada ao bar).
-   - Cada item de estoque tem saldo, quantidade cheia (100% do medidor), alerta mínimo e valor gasto em compras.
-   - Se o nome do item for igual ao de um produto do cardápio, o item fica LIGADO a ele (product_id):
-     cada pedido desconta as unidades NA HORA (são garrafas/latas físicas), o cancelamento devolve,
-     e o site mostra "Últimos!" / "Esgotado". Item sem ligação (gelo, copos...) só tem movimentação manual.
-   - Produto do cardápio sem item de estoque = sem controle (vende sem limite, como sempre foi).
-   - O que cada pedido descontou fica em orders.stock_used ({ "<itemId>": unidades }) para devolver exatamente o que saiu.
-   Valores em dinheiro sempre em centavos. */
+
 const { Router } = require('express');
 
 const UNITS = ['un', 'kg', 'g', 'l', 'ml'];
-const LOW_STOCK_LIMIT = 3;           // site: "Os 3 últimos!"
+const LOW_STOCK_LIMIT = 3;           
 const MAX_QTY = 999999;
 const MAX_CENTS = 99999999;
 const MOVEMENT_TYPES = ['entrada', 'saida', 'perda', 'conferencia'];
@@ -37,26 +30,26 @@ const SCHEMA = `
   CREATE INDEX IF NOT EXISTS inventory_movements_recent_idx ON inventory_movements (created_at DESC);
   ALTER TABLE orders ADD COLUMN IF NOT EXISTS stock_used JSONB NOT NULL DEFAULT '{}';`;
 
-/* ---------- Regras puras (testáveis sem banco) ---------- */
 
-// "12,5" ou "12.5" -> número; vazio -> fallback; inválido -> NaN
+
+
 const num = (v, fallback = 0) => {
   if (v === null || v === undefined || String(v).trim() === '') return fallback;
   return Number(String(v).trim().replace(',', '.'));
 };
-// "R$ 4,50" digitado no painel -> centavos (inteiro) ou null se inválido
+
 function parseMoneyCents(v) {
   if (v === null || v === undefined || String(v).trim() === '') return 0;
   let t = String(v).replace(/[^\d,.-]/g, '');
-  if (!/\d/.test(t)) return null;                                      // texto sem número
-  if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');   // 1.234,50 -> 1234.50
+  if (!/\d/.test(t)) return null;                                      
+  if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');   
   const n = Math.round(Number(t) * 100);
   return Number.isInteger(n) && n >= 0 && n <= MAX_CENTS ? n : null;
 }
 const validQty = (q, unit, { allowZero = false } = {}) =>
   Number.isFinite(q) && q <= MAX_QTY && (allowZero ? q >= 0 : q > 0) && (unit !== 'un' || Number.isInteger(q));
 
-// Fatores para trocar a unidade sem perder o saldo (kg<->g, l<->ml)
+
 const FACTORS = { 'kg>g': 1000, 'g>kg': 0.001, 'l>ml': 1000, 'ml>l': 0.001 };
 function unitFactor(from, to) {
   if (from === to) return 1;
@@ -66,7 +59,7 @@ function unitFactor(from, to) {
 }
 const convertQty = (value, from, to) => Math.round(Number(value) * unitFactor(from, to) * 1000) / 1000;
 
-// Situação do item para o medidor: usa o alerta mínimo quando existir; senão 20% da quantidade cheia.
+
 function stockStatus({ quantity, capacity, minimum }) {
   const q = Number(quantity) || 0, cap = Math.max(Number(capacity) || 0, q), min = Number(minimum) || 0;
   const percent = cap > 0 ? Math.max(0, Math.min(100, (q / cap) * 100)) : 0;
@@ -76,7 +69,7 @@ function stockStatus({ quantity, capacity, minimum }) {
 }
 const lowStockLabel = left => (left === 1 ? 'Último!' : `Os ${left} últimos!`);
 
-// Pedido -> Map(productId -> unidades)
+
 function unitsByProduct(items) {
   const m = new Map();
   for (const i of items || []) {
@@ -90,11 +83,11 @@ function shortageMessage({ name, left }) {
   return `Só temos ${left} unidade${left === 1 ? '' : 's'} de ${name}. Reduza a quantidade ou escolha outra bebida.`;
 }
 
-/* ---------- Baixa e devolução (rodam dentro da transação de quem chama) ---------- */
 
-// Desconta do estoque o que o pedido comprou (só itens ligados a um produto do cardápio).
-// Um UPDATE atômico por item, em ordem crescente de id: se dois clientes disputam a última unidade, só um leva.
-// Retorna { used, shortage }; com `shortage` quem chamou deve dar ROLLBACK.
+
+
+
+
 async function reserve(client, orderId) {
   const o = (await client.query('SELECT items FROM orders WHERE id=$1', [orderId])).rows[0];
   const want = unitsByProduct(o && o.items);
@@ -115,7 +108,7 @@ async function reserve(client, orderId) {
   return { used, shortage: null };
 }
 
-// Devolve ao estoque exatamente o que o pedido tinha descontado (cancelamento).
+
 async function release(client, orderId) {
   const o = (await client.query('SELECT stock_used FROM orders WHERE id=$1', [orderId])).rows[0];
   const entries = Object.entries((o && o.stock_used) || {}).map(([id, q]) => [Number(id), Number(q)])
@@ -127,7 +120,7 @@ async function release(client, orderId) {
   await client.query("UPDATE orders SET stock_used='{}' WHERE id=$1", [orderId]);
 }
 
-/* ---------- Painel: /api/admin/estoque ---------- */
+
 
 function createRouter({ pool, auth, wrap, clip }) {
   const router = Router();
@@ -135,7 +128,7 @@ function createRouter({ pool, auth, wrap, clip }) {
   const bad = (res, msg, status = 400) => res.status(status).json({ error: msg });
   const NOT_FOUND = 'Item não encontrado ou removido. Atualize a página.';
 
-  // Produto do cardápio com o mesmo nome e ainda sem item de estoque
+  
   const matchProduct = async (db, name, exceptItemId = 0) => (await db.query(
     `SELECT p.id FROM products p WHERE LOWER(TRIM(p.name))=LOWER(TRIM($1))
        AND NOT EXISTS (SELECT 1 FROM inventory_items i WHERE i.active AND i.product_id=p.id AND i.id<>$2) ORDER BY p.id LIMIT 1`, [name, exceptItemId])).rows[0]?.id || null;
@@ -152,7 +145,7 @@ function createRouter({ pool, auth, wrap, clip }) {
     res.json({ items: items.rows, movements: movements.rows, products: products.rows });
   }));
 
-  // Contadores para o aviso na aba (acabando / esgotados)
+  
   router.get('/summary', wrap(async (req, res) => {
     const r = (await pool.query(`SELECT
       COUNT(*) FILTER (WHERE quantity<=0)::int AS empty,
@@ -190,7 +183,7 @@ function createRouter({ pool, auth, wrap, clip }) {
     } finally { client.release(); }
   }));
 
-  // Contagem inicial de vários produtos do cardápio de uma vez: [{ productId, quantity }]. Linhas em branco não são criadas (ficam sem controle).
+  
   router.post('/bulk', wrap(async (req, res) => {
     const rows = Array.isArray(req.body?.rows) ? req.body.rows.slice(0, 500) : [];
     const todo = [];
@@ -256,7 +249,7 @@ function createRouter({ pool, auth, wrap, clip }) {
     } finally { client.release(); }
   }));
 
-  // Exclusão lógica: o histórico fica guardado e o produto do cardápio volta a vender sem controle.
+  
   router.delete('/items/:id', wrap(async (req, res) => {
     const id = Number(req.params.id);
     const r = await pool.query('UPDATE inventory_items SET active=FALSE,product_id=NULL,updated_at=now() WHERE id=$1 AND active RETURNING id', [id]);

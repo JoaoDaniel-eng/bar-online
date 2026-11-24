@@ -128,7 +128,7 @@ footer{max-width:720px;margin:36px auto 0;padding:0 16px 28px;color:var(--muted)
 .lg img{width:100%;height:100%;object-fit:contain}
 .sback{margin:14px 0 0;color:var(--blue-soft);min-height:44px;font-weight:600}
 
-/* Topo estilo Açaí da Roça + gaveta da conta */
+
 :root{--navh:68px}
 html{scroll-padding-top:calc(var(--navh) + 70px)}
 .nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;height:var(--navh);padding:0 max(14px,calc((100% - 1240px)/2));background:var(--navbg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);font-family:Poppins,system-ui,sans-serif}
@@ -158,7 +158,7 @@ body.dr-open .drawer{transform:none}body.dr-open .drawer-bg{opacity:1;pointer-ev
 .dr-list button:hover{background:rgba(45,107,255,.14)}.dr-list .ic{width:26px;text-align:center;font-size:19px}
 .dr-list .out{color:var(--rose)}
 .dr-close{position:absolute;right:10px;top:10px;width:40px;height:40px;font-size:26px;color:#fff}
-/* Telas da conta */
+
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 4px}
 .seg button{min-height:46px;border-radius:14px;border:1px solid var(--line);background:var(--panel);font:600 15px Poppins,sans-serif;color:var(--foam)}
 .seg button.on{background:var(--blue);border-color:var(--blue);color:#fff}
@@ -181,7 +181,7 @@ body.dr-open .drawer{transform:none}body.dr-open .drawer-bg{opacity:1;pointer-ev
 @media(max-width:860px){.links{display:none}.mypedido{margin-left:auto}}
 @media(max-width:520px){.brand b{display:none}.who{max-width:130px;overflow:hidden;text-overflow:ellipsis}.mypedido{padding:0 14px}}
 
-/* Tela de conta — estrutura do Açaí da Roça (duas caixas lado a lado), mantendo as cores do bar */
+
 .authpage{position:fixed;inset:0;z-index:75;display:none;overflow:auto;background:radial-gradient(900px 420px at 50% -8%,rgba(45,107,255,.18),transparent 70%),var(--bg);font-family:Poppins,system-ui,sans-serif;padding-top:env(safe-area-inset-top,0px)}
 .authpage.open{display:block}
 .atop{display:flex;align-items:center;justify-content:space-between;gap:10px;height:68px;padding:0 max(14px,calc((100% - 1240px)/2));border-bottom:1px solid var(--line)}
@@ -216,7 +216,7 @@ body.dr-open .drawer{transform:none}body.dr-open .drawer-bg{opacity:1;pointer-ev
 html[data-theme=light] .acard{box-shadow:0 14px 40px rgba(30,60,140,.14)}
 @media(max-width:520px){.nav .themebtn{display:none}}
 
-/* Fundo temático nas laterais (copo, garrafa, lata, drink, limão e bolhas) — só aparece em tela larga */
+
 .bgart{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.34;
   background:radial-gradient(520px 620px at 6% 30%,rgba(45,107,255,.22),transparent 70%),radial-gradient(520px 620px at 94% 70%,rgba(255,176,32,.14),transparent 70%),url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22320%22 viewBox=%220 0 320 320%22 fill=%22none%22 stroke=%22%233b78ff%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E %3Cg transform=%22translate(28 30) rotate(-12 30 35)%22%3E%3Cpath d=%22M10 16h34v40a6 6 0 0 1-6 6H16a6 6 0 0 1-6-6z%22/%3E%3Cpath d=%22M44 24h8a6 6 0 0 1 6 6v10a6 6 0 0 1-6 6h-8%22/%3E%3Cpath d=%22M10 16c0-7 9-9 13-5 3-5 13-4 14 3 4-1 7 1 7 5%22/%3E%3Cpath d=%22M20 28v20M28 28v20M36 28v20%22/%3E%3C/g%3E %3Cg transform=%22translate(200 24) rotate(14 28 40)%22%3E%3Cpath d=%22M22 4h12v14c4 4 8 8 8 16v44a6 6 0 0 1-6 6H20a6 6 0 0 1-6-6V34c0-8 4-12 8-16z%22/%3E%3Cpath d=%22M14 46h28M14 66h28%22/%3E%3C/g%3E %3Cg transform=%22translate(34 176) rotate(8 30 30)%22%3E%3Cpath d=%22M4 6h52L30 38z%22/%3E%3Cpath d=%22M30 38v26M16 64h28%22/%3E%3Ccircle cx=%2242%22 cy=%2215%22 r=%224%22/%3E%3Cpath d=%22M14 14h20%22/%3E%3C/g%3E %3Cg transform=%22translate(206 186) rotate(-8 24 36)%22%3E%3Crect x=%228%22 y=%2210%22 width=%2232%22 height=%2254%22 rx=%227%22/%3E%3Cpath d=%22M8 22h32M8 52h32%22/%3E%3Cpath d=%22M18 4h12%22/%3E%3C/g%3E %3Cg transform=%22translate(130 120)%22%3E%3Ccircle r=%2220%22/%3E%3Ccircle r=%2213%22/%3E%3Cpath d=%22M0-13V13M-13 0H13M-9.2-9.2l18.4 18.4M9.2-9.2l-18.4 18.4%22/%3E%3C/g%3E %3Cg transform=%22translate(122 252) rotate(18)%22%3E%3Crect width=%2226%22 height=%2226%22 rx=%224%22/%3E%3Cpath d=%22M6 8l6-3%22/%3E%3C/g%3E %3Cg transform=%22translate(150 28)%22%3E%3Ccircle r=%225%22/%3E%3C/g%3E%3Cg transform=%22translate(112 62)%22%3E%3Ccircle r=%223%22/%3E%3C/g%3E%3Cg transform=%22translate(280 150)%22%3E%3Ccircle r=%226%22/%3E%3C/g%3E%3Cg transform=%22translate(300 120)%22%3E%3Ccircle r=%223%22/%3E%3C/g%3E%3Cg transform=%22translate(20 130)%22%3E%3Ccircle r=%224%22/%3E%3C/g%3E%3Cg transform=%22translate(96 200)%22%3E%3Ccircle r=%223%22/%3E%3C/g%3E%3Cg transform=%22translate(290 290)%22%3E%3Ccircle r=%225%22/%3E%3C/g%3E%3Cg transform=%22translate(60 300)%22%3E%3Ccircle r=%223%22/%3E%3C/g%3E %3C/svg%3E") 0 0/320px 320px repeat;
   -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - 450px),transparent calc(50% - 385px),transparent calc(50% + 385px),#000 calc(50% + 450px),#000 100%);
@@ -226,11 +226,11 @@ html[data-theme=light] .bgart{opacity:.24}
 @keyframes artdrift{to{background-position:0 0,0 0,320px 320px}}
 @media(max-width:900px){.bgart{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto}}
-/* topo em celular estreito: cabe burger + botão instalar + entrar + meu pedido (vem por último para vencer as regras acima) */
+
 @media(max-width:420px){.nav{gap:6px;padding:0 10px}.who{padding:0 10px;font-size:13px;min-width:0}.mypedido{padding:0 12px;gap:8px;font-size:14px}}
 @media(max-width:400px){.mypedido .mp-l{display:none}.mypedido .mp-t{display:inline-block}.mypedido .mp-t::first-letter{text-transform:uppercase}}
 @media(max-width:340px){.brand{display:none}}
-/* aviso de atualização (fica acima da barra do carrinho quando ela aparece) */
+
 .upd{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:95;max-width:520px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:16px;background:var(--panel);border:1px solid var(--blue);box-shadow:0 12px 40px rgba(0,0,0,.55);color:var(--foam);font:600 14.5px/1.3 Poppins,system-ui,sans-serif;animation:up .22s ease-out}
 .upd .btn{min-height:42px;padding:0 18px;white-space:nowrap;flex:none}
 body:has(#bar:not([hidden])) .upd{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
@@ -311,7 +311,7 @@ function tileInner(p){
   const b=(cfg.brands||[]).find(z=>norm(z.name)===norm(p.brand));
   return b?badge(b,true):glyph(p.category);
 }
-/* Estoque: p.stock = unidades disponíveis (null = sem controle, vende sem limite) */
+
 const stockOf=p=>p.stock==null?null:Math.max(0,Math.floor(Number(p.stock)));
 const maxQty=p=>{const s=stockOf(p);return s===null?99:Math.min(99,s)};
 function fixCart(){for(const id of Object.keys(cart)){const p=products.find(x=>x.id==id);if(!p){delete cart[id];continue}const m=maxQty(p);if(m<1)delete cart[id];else if(cart[id]>m)cart[id]=m}}
@@ -334,7 +334,7 @@ function render(){
   bar();
   if(sOpen)renderSearch();
 }
-/* Busca e marcas */
+
 let sOpen=false,sBrand='';
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function badge(b,big){
@@ -438,7 +438,7 @@ function showCheckout(){
   if(pendingCoupon){$('#cp').value=pendingCoupon;pendingCoupon='';$('#cpb').click()}
   if(st&&!st.open){$('#err').textContent=st.message;$('#send').disabled=true}
   document.querySelectorAll('[name=pay]').forEach(r=>r.onchange=()=>{$('#chg').hidden=r.value!=='dinheiro'||!r.checked});
-  /* Validação: marca em vermelho o que faltou, explica embaixo do campo e leva a tela até o primeiro. */
+  
   const RULES=[['n',()=>$('#n').value.trim().length>=2,'Informe seu nome.'],
     ['p',()=>$('#p').value.replace(/\D/g,'').length>=10,'Informe seu WhatsApp com DDD. Ex.: (21) 99999-9999.'],
     ['z',()=>!!$('#z').value,'Escolha o bairro de entrega.'],
@@ -469,7 +469,7 @@ function showCheckout(){
       }else store.set('bdc_cust',{});
       cart={};render();done(j,body);refreshProducts();if(ctoken)loadMe();
     }catch(x){
-      if(x.stock){await refreshProducts();showCart(x.message);return}   // acabou enquanto o cliente comprava: volta ao carrinho já corrigido
+      if(x.stock){await refreshProducts();showCart(x.message);return}   
       err.textContent=navigator.onLine?x.message:'Sem internet. Conecte-se para enviar o pedido.';btn.disabled=false;btn.textContent='Enviar pedido'}
   };
 }
@@ -482,7 +482,7 @@ function done(o,b){
 }
 
 
-/* ---------- Conta do cliente ---------- */
+
 let me=null,ctoken=store.get('bdc_ct',''),favs=new Set(),pendingCoupon='';
 const firstName=n=>String(n||'').trim().split(/\s+/)[0];
 const fmtPhone=v=>{const d=String(v||'').replace(/\D/g,'');return d.length===11?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d.length===10?`(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`:v};
@@ -501,10 +501,10 @@ function updateNav(){
 }
 async function loadMe(){
   if(!ctoken){updateNav();return}
-  try{me=await capi('me');favs=new Set(await capi('me/favorites'))}catch(e){if(ctoken){/* falha de rede: mantém sessão */}}
+  try{me=await capi('me');favs=new Set(await capi('me/favorites'))}catch(e){if(ctoken){}}
   updateNav();if(products.length)render();
 }
-/* Gaveta */
+
 function openDrawer(){document.body.classList.add('dr-open');$('#drawer').setAttribute('aria-hidden','false');document.body.style.overflow='hidden'}
 function closeDrawer(){document.body.classList.remove('dr-open');$('#drawer').setAttribute('aria-hidden','true');if(!sheet.classList.contains('open')&&!sOpen)document.body.style.overflow=''}
 function renderDrawer(){
@@ -527,7 +527,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.class
 $('#navCart').onclick=()=>showCart();$('#navBrands').onclick=()=>openSearch();
 $('#who').onclick=()=>me?(renderDrawer(),openDrawer()):showAuth();
 
-/* Login / cadastro — tela cheia com duas caixas (Já tenho conta | Criar conta) */
+
 function closeAuth(){const a=$('#authPage');a.classList.remove('open');a.innerHTML='';if(!sheet.classList.contains('open')&&!sOpen)document.body.style.overflow=''}
 function showAuth(tab='login',after,note){
   const reg=tab==='register',a=$('#authPage'),wa=cfg.whatsapp;
@@ -664,7 +664,7 @@ function showSettings(){
 }
 loadMe();
 
-/* Tema claro / escuro (salvo no aparelho) */
+
 function isLight(){return document.documentElement.dataset.theme==='light'}
 function paintTheme(){
   const l=isLight(),sun='<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',moon='<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
@@ -674,11 +674,11 @@ function paintTheme(){
 function toggleTheme(){const t=isLight()?'dark':'light';document.documentElement.dataset.theme=t;store.set('bdc_theme',t);paintTheme();renderDrawer()}
 $('#themeBtn').onclick=toggleTheme;paintTheme();renderDrawer();
 
-/* PWA: botão "Instalar app" no topo (celular e computador) */
+
 let dp;
 const ua=navigator.userAgent,isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),inApp=/FBAN|FBAV|Instagram|WhatsApp|; wv\)/i.test(ua);
 const isInstalled=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-if(!isInstalled())$('#install').hidden=false;   // só some quando o app já está instalado
+if(!isInstalled())$('#install').hidden=false;   
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e});
 addEventListener('appinstalled',()=>{$('#install').hidden=true;dp=null});
 function installHelp(){
@@ -695,7 +695,7 @@ $('#install').onclick=async()=>{
   dp.prompt();const c=await dp.userChoice;dp=null;if(c.outcome==='accepted')$('#install').hidden=true;
 };
 if(isIOS&&!isInstalled())$('#iosHint').hidden=false;
-/* Aviso de nova versão: depois de um deploy, aparece embaixo "Há uma nova atualização disponível" com o botão Atualizar. */
+
 let wantReload=false;
 function showUpdate(reg){
   if($('#upd'))return;
@@ -704,7 +704,7 @@ function showUpdate(reg){
   const b=d.querySelector('button');
   b.onclick=()=>{b.disabled=true;b.textContent='Atualizando…';wantReload=true;
     if(reg.waiting)reg.waiting.postMessage('SKIP_WAITING');else location.reload();
-    setTimeout(()=>location.reload(),4000)};   // garantia: se o navegador não avisar a troca, recarrega mesmo assim
+    setTimeout(()=>location.reload(),4000)};   
   document.body.append(d);
 }
 if('serviceWorker' in navigator){
@@ -720,13 +720,13 @@ if('serviceWorker' in navigator){
   });
 }
 
-/* Idade */
+
 const gate=$('#gate');
 if(!store.get('bdc_18',false))gate.classList.add('open');
 $('#yes').onclick=()=>{store.set('bdc_18',true);gate.classList.remove('open')};
 $('#no').onclick=()=>{$('#gt').textContent='Que pena!';$('#gp').textContent='Só vendemos para maiores de 18 anos. Volte quando completar a idade.';$('#yes').hidden=$('#no').hidden=true};
 
-/* Dados */
+
 (async()=>{
   try{
     const [c,p]=await Promise.all([fetch('/api/config').then(r=>r.json()),fetch('/api/products').then(r=>r.json())]);
