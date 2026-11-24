@@ -464,17 +464,19 @@ html[data-theme="dark"] #foot { border-color:rgba(176,197,240,.16); }
 /* Fit completo das embalagens: moldura mais alta, imagem inteira e centralizada. */
 main#menu .row { grid-template-rows:240px auto auto; }
 main#menu .tile { display:grid;place-items:center;height:240px;overflow:hidden; }
-main#menu .tile img { display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center center;padding:16px 24px 22px;background:transparent;mix-blend-mode:multiply; }
+main#menu .tile img { display:block;width:auto;height:240px;max-width:100%;object-fit:contain!important;object-position:center center;padding:0;background:transparent;mix-blend-mode:multiply; }
 @media (max-width:980px) {
   main#menu .row { grid-template-rows:220px auto auto; }
   main#menu .tile { height:220px; }
+  main#menu .tile img { height:220px; }
 }
 @media (max-width:720px) {
   main#menu .row { grid-template-rows:188px auto auto; }
   main#menu .tile { height:188px; }
-  main#menu .tile img { padding:12px 18px 18px; }
+  main#menu .tile img { height:188px; }
 }
 @media (max-width:390px) {
   main#menu .row { grid-template-rows:202px auto auto; }
   main#menu .tile { height:202px; }
+  main#menu .tile img { height:202px; }
 }
