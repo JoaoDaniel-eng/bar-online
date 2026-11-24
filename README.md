@@ -1,6 +1,6 @@
 # Bar On-line do Cruzeiro — delivery de bebidas (PWA)
 
-Node + Express + PostgreSQL (Neon). Loja em `/`, painel em `/admin`. Código em `src/` (servidor em `src/server.js`, site em `src/public/`).
+Node + Express + PostgreSQL (Neon). Loja em `/`, painel em `/admin`. O servidor e os módulos da aplicação ficam em `src/`; os arquivos públicos do site ficam em `public/`.
 
 ## Rodar local
 1. `cp .env.example .env` e preencha `DATABASE_URL` (Neon), `ADMIN_PASSWORD`, `WHATSAPP_NUMBER` (ex.: 5524999999999).
@@ -24,8 +24,8 @@ Variáveis: `DATABASE_URL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `WHATSAPP_NUMBER
 - **Bairros e taxas**: cada bairro tem nome, taxa e chave Ativo. Dá para editar nome e taxa direto na lista, desativar sem apagar (some do site) e o sistema recusa bairro repetido. Pedidos só aceitam bairros ativos.
 - **Funcionamento**: nome do bar, WhatsApp, dias e horário (aceita madrugada: abre 18:00, fecha 02:00; abre e fecha no mesmo horário = 24h), previsão de entrega, frete grátis a partir de um valor e fechamento manual. Fora do horário, ou com o fechamento manual, o site mostra o aviso de fechado e o servidor recusa pedidos. O botão **Pausar pedidos** no topo do painel liga e desliga o fechamento manual; o Caixa pode reabrir/pausar os pedidos ao abrir/fechar. Nome e WhatsApp vazios usam `STORE_NAME` e `WHATSAPP_NUMBER` do `.env`. Sem nada configurado o bar fica aberto 24h, todos os dias. Código em `src/funcionamento.js`.
 - **Relatórios**: resumo de Hoje / Esta semana / Este mês (a semana começa na segunda), e para 7, 30 ou 90 dias: faturamento, pedidos, ticket médio, taxas de entrega, faturamento por dia, 10 mais vendidos, horários de pico (a madrugada fica junto da noite), dias da semana e formas de pagamento. Horário de Brasília; cancelados não contam.
-- **Cupons**: código, desconto em % ou valor fixo, pedido mínimo, ativar/desativar e excluir; mostra quantos pedidos usaram cada cupom e quanto saiu em descontos. O cliente aplica no fim do pedido; o servidor recalcula o desconto (sobre o valor das bebidas, antes da entrega) e o frete grátis considera o valor já com desconto. A comanda, o WhatsApp e os Relatórios mostram o cupom. As tentativas de código no site são limitadas a 30 por IP a cada 10 min. O cupom automático de primeira compra do açaí não foi levado (precisa de conta de cliente). Código em `src/cupons.js`.
-- **Estoque** (mesma ideia do Açaí da Roça): cada item tem saldo, medidor (bom / está acabando / esgotado), alerta mínimo e gasto em compras. Ações: **Adicionar compra** (soma ao saldo, guarda valor e fornecedor), **Corrigir saldo** (informa o que existe de verdade; a diferença vai para o histórico como conferência, sem contar como compra), **Retirar / perda** (uso, quebra, vencimento), **Editar** (nome, alerta, quantidade cheia; trocar kg↔g ou L↔ml converte o saldo) e **Excluir** (lógico: o histórico fica). Há busca, filtro por situação e o histórico de movimentações. Para cadastrar vários produtos de uma vez use **Contar vários produtos de uma vez**.
+- **Cupons**: código, desconto em % ou valor fixo, pedido mínimo, ativar/desativar e excluir; mostra quantos pedidos usaram cada cupom e quanto saiu em descontos. O cliente aplica no fim do pedido; o servidor recalcula o desconto (sobre o valor das bebidas, antes da entrega) e o frete grátis considera o valor já com desconto. A comanda, o WhatsApp e os Relatórios mostram o cupom. As tentativas de código no site são limitadas a 30 por IP a cada 10 min. Código em `src/cupons.js`.
+- **Estoque**: cada item tem saldo, medidor (bom / está acabando / esgotado), alerta mínimo e gasto em compras. Ações: **Adicionar compra** (soma ao saldo, guarda valor e fornecedor), **Corrigir saldo** (informa o que existe de verdade; a diferença vai para o histórico como conferência, sem contar como compra), **Retirar / perda** (uso, quebra, vencimento), **Editar** (nome, alerta, quantidade cheia; trocar kg↔g ou L↔ml converte o saldo) e **Excluir** (lógico: o histórico fica). Há busca, filtro por situação e o histórico de movimentações. Para cadastrar vários produtos de uma vez use **Contar vários produtos de uma vez**.
   - **Ligação com o cardápio:** se o nome do item for igual ao de um produto do cardápio, ele fica ligado. Cada pedido desconta as unidades **na hora** (são garrafas e latas físicas); se dois clientes disputam a última unidade, só um leva e o outro recebe a mensagem "acabou". Cancelar o pedido devolve exatamente o que saiu; reativar um cancelado desconta de novo (e recusa se não houver mais).
   - **No site:** com 3 ou menos unidades aparece "Os 3 últimos!" (2 → "Os 2 últimos!", 1 → "Último!"); com 0, "Esgotado" e não dá para comprar; o carrinho nunca passa do saldo.
   - **Sem controle:** produto do cardápio sem item de estoque vende sem limite, como antes. Cuidado: item ligado com saldo **0** aparece como Esgotado no site. Itens que não são vendidos (gelo, copos) ficam só com controle manual.
@@ -39,8 +39,8 @@ Para trocar os produtos de um banco que já existe pelo catálogo de `src/catalo
 
 ## Fotos e logos
 Basta colocar os arquivos nas pastas, com o nome do produto/marca em minúsculas, sem acento e com hífen no lugar dos espaços:
-- fotos dos produtos em `src/public/produtos/` (ex.: `heineken-long-neck.jpg`, `coca-cola-2-l.png`)
-- logos das marcas em `src/public/brands/` (ex.: `skol.png`, `stella-artois.png`)
+- fotos dos produtos em `public/produtos/` (ex.: `heineken-long-neck.jpg`, `coca-cola-2-l.png`)
+- logos das marcas em `public/brands/` (ex.: `skol.png`, `stella-artois.png`)
 Aceita jpg, png, webp e svg. Não precisa reiniciar o servidor. A URL cadastrada no painel, se houver, tem prioridade.
 `npm run fotos` mostra o que já está pronto e o que falta, e gera o arquivo `LISTA-DE-FOTOS.txt`.
 

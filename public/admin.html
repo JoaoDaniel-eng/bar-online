@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Painel — Bar On-line do Cruzeiro</title>
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#2d6bff;--blue-soft:#7ea6ff;--amber:#ffb020;--panel:#07102b;--panel2:#0b1638;--line:rgba(45,107,255,.38);--muted:#9aa6c4;--foam:#f7f1e3;--bg:#02050f}
+*{box-sizing:border-box;margin:0}
+html{background:var(--bg)}
+body{background:radial-gradient(1200px 500px at 50% -120px,rgba(45,107,255,.16),transparent 70%),var(--bg);color:var(--foam);font:15px/1.45 Poppins,system-ui,sans-serif;min-height:100vh}
+h1{font-size:34px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
+button,input,select{font:inherit;color:inherit}
+input,select{width:100%;min-height:44px;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.45)}
+input:focus,select:focus{outline:2px solid var(--blue);outline-offset:1px}
+input[type=checkbox]{accent-color:var(--blue)}
+button{cursor:pointer;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);font-weight:600;font-size:14px;transition:filter .15s,transform .05s}
+button:hover{filter:brightness(1.25)}button:active{transform:translateY(1px)}
+button.p{background:var(--blue);color:#fff;border:0}
+button.d{color:#ff9aa5;background:rgba(167,46,67,.18);border-color:rgba(255,107,120,.45)}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.site-top{display:flex;align-items:center;gap:12px;padding:14px max(20px,calc((100% - 1240px)/2));border-bottom:1px solid var(--line);background:rgba(0,0,0,.5);backdrop-filter:blur(8px);position:sticky;top:0;z-index:20}
+.site-top img{width:38px;height:38px;border-radius:50%;border:1px solid var(--line)}
+.site-top b{font-size:19px;font-weight:700;flex:1}.site-top b span{color:var(--blue-soft)}
+.store-link{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 24px;border-radius:999px;background:var(--blue);color:#fff;font-weight:700;text-decoration:none;box-shadow:0 6px 24px rgba(45,107,255,.35);white-space:nowrap}
+.store-link:hover{filter:brightness(1.15)}
+.wrap{max-width:1240px;margin:0 auto;padding:36px 20px 60px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:26px}
+.head-actions{display:flex;gap:10px;flex-wrap:wrap}
+.head-actions button{min-height:52px;border-radius:14px;background:var(--panel)}
+.head-actions button.d{background:#b3334a;color:#fff;border-color:rgba(255,255,255,.12)}
+.head-actions button.p{background:var(--blue);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:26px}
+.kpi{padding:22px 24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.kpi span{display:block;font-size:13px;color:var(--muted)}.kpi strong{display:block;font-size:30px;font-weight:700;margin:6px 0 4px;color:#fff}.kpi small{color:var(--muted);font-size:13px}
+.kpi.warn strong{color:var(--amber)}
+.tabs{display:flex;gap:10px;margin-bottom:22px;overflow-x:auto;padding-bottom:12px;scrollbar-color:var(--line) transparent;scrollbar-width:thin}
+.tabs button{flex:none;min-height:46px;padding:0 20px;border-radius:14px;background:var(--panel)}
+.tabs button.on{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 4px 18px rgba(45,107,255,.4)}
+.box{border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:14px;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.login-box{max-width:400px;margin:8vh auto 0;padding:28px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,var(--panel2),var(--panel));display:grid;gap:12px}
+.login-box h2{font-size:22px}
+.panel-card{border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,var(--panel2),var(--panel));padding:24px}
+.panel-card h2{font-size:22px;font-weight:700}
+.tw{overflow-x:auto}
+.otable{width:100%;border-collapse:collapse;font-size:14px;min-width:860px}
+.otable th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.otable td{padding:16px 12px;border-bottom:1px solid rgba(255,255,255,.07);vertical-align:top}
+.otable tr.st-cancelado{opacity:.5}.otable tr.st-novo td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
+.otable .code{font-weight:700;font-size:15px}
+.pill{display:inline-block;padding:4px 12px;border-radius:99px;font-size:12.5px;font-weight:600;border:1px solid currentColor;text-transform:capitalize}
+.pill.novo{color:var(--amber);background:rgba(255,176,32,.12)}.pill.preparando{color:#7ea6ff;background:rgba(45,107,255,.15)}.pill.saiu{color:#c79cff;background:rgba(160,100,255,.14)}.pill.entregue{color:#6be08a;background:rgba(36,163,106,.16)}.pill.cancelado{color:#ff9aa5;background:rgba(217,74,85,.14)}
+.oact{display:grid;gap:8px;min-width:150px}.oact select{min-height:40px}.oact .r{display:flex;gap:8px}.oact .r button{min-height:36px;padding:0 12px;flex:1;white-space:nowrap;text-transform:capitalize}.oact .r{flex-wrap:wrap}
+.ofilters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0}.ofilters input{flex:1 1 260px;width:auto}.ofilters select{width:auto;min-width:170px}
+.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tag{padding:2px 10px;border-radius:99px;font-size:13px;background:#000;border:1px solid var(--amber);color:var(--amber)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
+.muted{color:var(--muted);font-size:14px}
+.err{color:#ff8a8a;min-height:1.3em;margin-top:8px}
+.photo-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0 12px}
+.photo-preview{width:76px;height:76px;object-fit:contain;background:#fff;border-radius:10px;border:1px solid var(--line)}
+.photo-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex:1}
+.photo-controls input{max-width:280px}
+a{color:var(--blue-soft)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.card{border:1px solid var(--line);border-radius:18px;padding:16px;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.card b{display:block;font-size:24px;color:#fff}
+.bars{display:flex;align-items:flex-end;gap:4px;height:140px;margin-top:10px}
+.bars div{flex:1;background:var(--blue);border-radius:4px 4px 0 0;min-height:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chips button{min-height:38px;padding:0 16px;border-radius:99px;text-transform:capitalize}.chips button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.st-novo{border-color:var(--amber)}.st-cancelado{opacity:.5}
+.ok{color:#6be08a}.over{color:var(--amber)}.short{color:#ff8a8a}
+.result{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px;border-radius:10px;border:1px solid currentColor;margin:10px 0;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08)}th{color:var(--muted);font-weight:500}
+.rb{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:3px 0;font-size:14px}.rb i{display:block;height:12px;background:var(--blue);border-radius:6px;min-width:3px}.rb.pk i{background:var(--amber)}.rb small{grid-column:2/4;color:var(--muted);margin-top:-4px}.badge{margin-left:6px;padding:1px 8px;border-radius:99px;font-size:12px;border:1px solid var(--amber);color:var(--amber)}
+.tw{overflow-x:auto}.small{min-height:34px;padding:0 10px;font-size:14px}
+/* Estoque (mesmo desenho do Açaí da Roça, nas cores do bar) */
+.eyebrow{display:block;color:var(--blue-soft);font-size:12px;font-weight:700;letter-spacing:.14em;margin-bottom:6px}
+.inv{display:grid;gap:16px}.inv-intro h2{font-size:26px;margin:2px 0}
+.inv-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}.inv-card h3{font-size:18px;margin-bottom:6px}.inv-card>.muted{margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.stat{display:flex;flex-direction:column;gap:4px;padding:18px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,var(--panel2),var(--panel))}.stat span{font-size:13px;color:var(--muted)}.stat strong{font-size:24px;color:#fff}
+.inv-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:end}.inv-form label{display:grid;gap:6px;font-weight:600;font-size:14px}.inv-form .full{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap}.inv-form button{min-height:46px}
+.inv-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.inv-bar input{flex:1 1 220px;min-width:0}.inv-bar select{flex:0 1 auto;width:auto;min-width:150px}
+.stock-list{display:grid;gap:12px}
+.stock-card{display:grid;gap:12px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.stock-card.is-low{border-color:var(--amber)}.stock-card.is-empty{border-color:#ff6b78}
+.stock-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.stock-head h4{font-size:17px}.stock-head small{display:block;color:var(--muted);margin-top:2px;font-size:13.5px}
+.stock-badge{flex:none;padding:4px 10px;border-radius:99px;font-size:12.5px;font-weight:700;border:1px solid currentColor;white-space:nowrap}.stock-badge.good{color:#6be08a}.stock-badge.low{color:var(--amber)}.stock-badge.empty{color:#ff8a8a}
+.stock-qty{font-size:28px;font-weight:800;line-height:1.1}.stock-qty span{font-size:16px;font-weight:600;color:var(--muted);margin-left:4px}
+.stock-meter{display:grid;gap:5px}.stock-meter-track{height:10px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}.stock-meter-track i{display:block;height:100%;border-radius:99px;transition:width .2s ease}.stock-meter-track i.good{background:#24a36a}.stock-meter-track i.low{background:#e3a323}.stock-meter-track i.empty{background:#d94a55}.stock-meter small{font-size:13px;color:var(--muted)}
+.stock-facts{display:flex;gap:6px 18px;flex-wrap:wrap;list-style:none;padding:0;font-size:14px;color:var(--muted)}.stock-facts strong{color:var(--foam)}
+.stock-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.stock-actions button{width:100%}
+.stock-empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+dialog.stock-dialog{width:min(480px,calc(100% - 28px));max-height:calc(100dvh - 28px);overflow:auto;padding:0;margin:auto;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--foam);box-shadow:0 24px 80px #000a;color-scheme:dark}
+.stock-dialog::backdrop{background:#000c;backdrop-filter:blur(3px)}
+.stock-dialog-form{display:grid;gap:14px;padding:22px}.stock-dialog-form h3{font-size:20px}.stock-dialog-desc{color:var(--muted);line-height:1.5}
+.stock-field{display:grid;gap:6px;font-weight:700}.stock-field small{font-weight:400;color:var(--muted);line-height:1.4}.stock-field-row{display:flex;align-items:center;gap:10px}.stock-unit-tag{min-width:42px;font-weight:700}
+.stock-dialog-error{color:#ff8a8a;font-weight:600}.stock-dialog-error:empty{display:none}
+.stock-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+button.danger{background:#a72e43;border:0;color:#fff;font-weight:600}
+.stock-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;max-width:min(560px,calc(100% - 28px));padding:12px 18px;border-radius:12px;font-weight:600;box-shadow:0 12px 40px #000a;background:#1f6f46;color:#fff}.stock-toast.error{background:#a72e43}.stock-toast[hidden]{display:none}
+.cnt{max-height:55vh;overflow:auto;border:1px solid var(--line);border-radius:10px;margin:10px 0}.cnt .row{align-items:center;padding:6px 10px}.cnt input{width:96px;min-height:38px;text-align:right}.cnt h4{padding:8px 10px;background:#000;color:var(--amber);position:sticky;top:0}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:28px}}
+@media(max-width:620px){.wrap{padding:24px 14px 50px}.site-top{padding:12px 14px}.store-link{padding:0 16px;min-height:42px;font-size:13px}.kpis{gap:10px}.kpi{padding:16px}.kpi strong{font-size:22px}.head-actions{width:100%}.head-actions button{flex:1 1 auto;min-height:46px}.stats{grid-template-columns:1fr 1fr}.inv-form{grid-template-columns:1fr}.inv-bar select{flex:1 1 100%}.stock-actions{grid-template-columns:1fr 1fr}.stock-dialog-actions{flex-direction:column-reverse}.stock-dialog-actions button{width:100%}}
+.bk-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}.bk-actions label{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:14px}.bk-actions input[type=checkbox]{width:auto;min-height:0}
+.bk-note{border-left:3px solid var(--amber);padding:8px 12px;margin:12px 0 0;color:var(--muted);font-size:14px;background:rgba(255,176,32,.06);border-radius:0 10px 10px 0}
+.bk-prev{margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.3);font-size:14px}.bk-prev[hidden]{display:none}.bk-prev b{color:#fff}
+.bk-row-actions{display:flex;gap:6px;flex-wrap:wrap}.bk-row-actions button{min-height:34px;padding:0 12px;font-size:13px}
+.bk-file{padding:10px;min-height:48px}
+@media print{body *{display:none}}
+</style>
+</head>
+<body>
+<header class="site-top"><img src="/icons/logo.jpg" alt=""><b>Bar On-line <span>do Cruzeiro</span></b><a class="store-link" id="to-store" href="/">← Voltar para a loja</a></header>
+<div class="wrap"><div id="app"></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+let token=sessionStorage.getItem('bdc_admin')||'',tab='dash',timer,wtimer,lastMax=null,newCount=0,stockAlert=0,wt=0,ofilter='ativos',oq='';
+async function api(path,opt={}){
+  const r=await fetch('/api/admin/'+path,{...opt,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401&&path!=='login'){token='';sessionStorage.removeItem('bdc_admin');login();throw new Error(j.error)}
+  if(!r.ok)throw new Error(j.error||'Erro');return j;
+}
+function login(){
+  clearInterval(timer);clearInterval(wtimer);wtimer=null;
+  $('#app').innerHTML=`<div class="login-box"><span class="eyebrow">GESTÃO DO BAR</span><h2>Entrar no painel</h2><label for="pw" class="muted">Senha do painel</label><input id="pw" type="password" autocomplete="current-password"><div class="err" id="e"></div><button class="p" id="go" style="width:100%;min-height:48px">Entrar</button></div>`;
+  const go=async()=>{try{const j=await api('login',{method:'POST',body:JSON.stringify({password:$('#pw').value})});token=j.token;sessionStorage.setItem('bdc_admin',token);shell()}catch(e){$('#e').textContent=e.message}};
+  $('#go').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};
+}
+const snd=()=>{try{return localStorage.getItem('bdc_snd')!=='off'}catch(e){return true}};
+function sndLabel(){const b=$('#snd');if(b)b.textContent=snd()?'🔔 Som: ligado':'🔕 Som: desligado'}
+async function kpis(){
+  try{
+    const [per,all,st]=await Promise.all([api('reports/periods'),api('orders'),api('estoque/summary')]);
+    const hoje=per[0]||{revenue:0,orders:0},mes=per[2]||{revenue:0,orders:0};
+    const emAnd=all.filter(o=>['novo','preparando','saiu'].includes(o.status)).length,acab=(st.low||0)+(st.empty||0);
+    const k=$('#kpis');if(!k)return;
+    k.innerHTML=`<div class="kpi"><span>Faturamento do mês</span><strong>${brl(mes.revenue)}</strong><small>${mes.orders} pedidos não cancelados</small></div>
+    <div class="kpi"><span>Hoje</span><strong>${brl(hoje.revenue)}</strong><small>${hoje.orders} pedido(s) hoje</small></div>
+    <div class="kpi"><span>Pedidos em andamento</span><strong>${emAnd}</strong><small>Novos, preparando ou em entrega</small></div>
+    <div class="kpi ${acab?'warn':''}"><span>Estoque acabando</span><strong>${acab}</strong><small>Produtos acabando ou esgotados</small></div>`;
+  }catch(e){}
+}
+function shell(){
+  $('#app').innerHTML=`<div class="page-head"><div><span class="eyebrow">GESTÃO DO BAR</span><h1>Painel do Bar do Cruzeiro</h1></div><div class="head-actions"><button id="snd"></button><button id="pause">…</button><button id="out">Sair</button></div></div>
+  <div class="kpis" id="kpis"><div class="kpi"><span>Faturamento do mês</span><strong>…</strong></div><div class="kpi"><span>Hoje</span><strong>…</strong></div><div class="kpi"><span>Pedidos em andamento</span><strong>…</strong></div><div class="kpi"><span>Estoque acabando</span><strong>…</strong></div></div>
+  <div class="tabs">${[['dash','Resumo'],['orders','Pedidos'+(newCount?' ('+newCount+')':'')],['products','Produtos'],['estoque','Estoque'+(stockAlert?' ('+stockAlert+')':'')],['brands','Marcas'],['zones','Bairros'],['reports','Relatórios'],['coupons','Cupons'],['customers','Clientes'],['cash','Caixa'],['settings','Funcionamento'],['backup','Backup']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('')}</div><div id="body"></div>`;
+  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;shell()});
+  $('#pause').onclick=togglePause;sndLabel();
+  $('#snd').onclick=()=>{try{localStorage.setItem('bdc_snd',snd()?'off':'on')}catch(e){}sndLabel()};
+  $('#out').onclick=()=>{clearInterval(wtimer);wtimer=null;token='';sessionStorage.removeItem('bdc_admin');login()};
+  clearInterval(timer);kpis();
+  if(!wtimer){watch();watchStock();wtimer=setInterval(()=>{watch();if(++wt%4===0){watchStock();kpis()}},15000)}
+  ({dash,orders,products,estoque,brands,zones,reports,coupons,customers,cash,settings,backup})[tab]();
+  refreshPause();
+}
+const ST=['novo','preparando','saiu','entregue','cancelado'];
+function beep(){if(!snd())return;try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.2;o.start();o.stop(a.currentTime+.5)}catch(e){}}
+async function watch(){try{const r=await api('orders');const mx=Math.max(0,...r.map(o=>o.id));
+  if(lastMax!==null&&mx>lastMax){beep();document.title='🔔 Novo pedido! — Painel';if(tab==='orders')orders()}
+  lastMax=mx;newCount=r.filter(o=>o.status==='novo').length;
+  const t=document.querySelector('[data-t=orders]');if(t)t.textContent='Pedidos'+(newCount?' ('+newCount+')':'')}catch(e){}}
+async function dash(days=7){
+  const s=await api('stats?days='+days),mx=Math.max(1,...s.byDay.map(d=>d.total));
+  const list=(arr,f)=>arr.length?arr.map(f).join(''):'<p class="muted">Sem dados no período.</p>';
+  $('#body').innerHTML=`<div class="chips">${[[1,'Hoje'],[7,'7 dias'],[30,'30 dias']].map(p=>`<button data-d="${p[0]}" class="${p[0]===days?'on':''}">${p[1]}</button>`).join('')}</div>
+  <div class="cards"><div class="card"><span class="muted">Faturamento</span><b>${brl(s.revenue)}</b></div><div class="card"><span class="muted">Pedidos</span><b>${s.orders}</b></div><div class="card"><span class="muted">Ticket médio</span><b>${brl(s.avg)}</b></div><div class="card"><span class="muted">Cancelados</span><b>${s.cancelled}</b></div></div>
+  <div class="box"><b>Vendas por dia</b><div class="bars">${s.byDay.map(d=>`<div title="${d.day.split('-').reverse().slice(0,2).join('/')}: ${brl(d.total)} (${d.n} pedidos)" style="height:${Math.max(2,d.total/mx*100)}%"></div>`).join('')}</div></div>
+  <div class="box"><b>Mais vendidos</b>${list(s.top,t=>`<div class="row"><span>${esc(t.name)}</span><span>${t.qty} un · ${brl(t.total)}</span></div>`)}</div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"><div class="box"><b>Pagamento</b>${list(s.payments,x=>`<div class="row"><span>${esc(x.name)}</span><span>${x.n}</span></div>`)}</div><div class="box"><b>Bairros</b>${list(s.zones,x=>`<div class="row"><span>${esc(x.name)}</span><span>${x.n}</span></div>`)}</div></div>`;
+  document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>dash(+b.dataset.d));
+}
+function printOrder(o){const w=window.open('','_blank','width=380,height=640');if(!w)return alert('Libere pop-ups para imprimir.');
+  w.document.write(`<pre style="font:14px/1.4 monospace;white-space:pre-wrap">PEDIDO #${o.id} — ${new Date(o.created_at).toLocaleString('pt-BR')}
+${esc(o.customer_name)} · ${esc(o.phone)}
+${esc(o.address)} (${esc(o.zone)})
+--------------------------------
+${o.items.map(i=>i.qty+'x '+esc(i.name)).join('\n')}
+--------------------------------
+${o.notes?'Obs.: '+esc(o.notes)+'\n':''}Pagamento: ${esc(o.payment)}${o.change_for?' (troco p/ '+esc(o.change_for)+')':''}
+${o.discount_cents?'Cupom '+esc(o.coupon_code)+': -'+brl(o.discount_cents)+'\n':''}Entrega: ${brl(o.fee_cents)}
+TOTAL: ${brl(o.total_cents)}</pre>`);w.document.close();w.focus();w.print()}
+async function orders(){
+  document.title='Painel — Bar On-line do Cruzeiro';
+  const load=async()=>{
+    const all=await api('orders');
+    const cnt=s=>all.filter(o=>s==='ativos'?['novo','preparando','saiu'].includes(o.status):s==='todos'||o.status===s).length;
+    const q=oq.toLowerCase();
+    const rows=all.filter(o=>(ofilter==='todos'||(ofilter==='ativos'?['novo','preparando','saiu'].includes(o.status):o.status===ofilter))&&(!q||('#'+o.id+' '+o.customer_name+' '+o.phone).toLowerCase().includes(q)));
+    const when=d=>new Date(d).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    $('#body').innerHTML=`<div class="panel-card"><h2>Pedidos</h2>
+    <div class="chips" style="margin:14px 0 0">${['ativos',...ST,'todos'].map(s=>`<button data-f="${s}" class="${s===ofilter?'on':''}">${s} (${cnt(s)})</button>`).join('')}</div>
+    <div class="ofilters"><input id="oq" placeholder="Buscar por nº, nome ou telefone" value="${esc(oq)}"></div>`+
+    (rows.length?`<div class="tw"><table class="otable"><thead><tr><th>Pedido</th><th>Cliente / entrega</th><th>Itens</th><th>Pagamento</th><th>Total</th><th>Status</th><th>Ação</th></tr></thead><tbody>${rows.map(o=>{const nx=ST[ST.indexOf(o.status)+1];return `<tr class="st-${o.status}">
+      <td><div class="code">#${o.id}</div><div class="muted">${when(o.created_at)}</div></td>
+      <td><b>${esc(o.customer_name)}</b><div class="muted"><a href="https://wa.me/55${esc(o.phone.replace(/\D/g,'').replace(/^55/,''))}">${esc(o.phone)}</a></div><div class="muted">${esc(o.address)} — ${esc(o.zone)}</div></td>
+      <td>${o.items.map(i=>`<div>${i.qty}× <b>${esc(i.name)}</b></div>`).join('')}${o.notes?`<div class="muted">Obs.: ${esc(o.notes)}</div>`:''}</td>
+      <td>${esc(o.payment)}${o.change_for?`<div class="muted">troco p/ ${esc(o.change_for)}</div>`:''}</td>
+      <td><b>${brl(o.total_cents)}</b><div class="muted">Entrega ${brl(o.fee_cents)}${o.discount_cents?' · cupom '+esc(o.coupon_code)+' −'+brl(o.discount_cents):''}</div></td>
+      <td><span class="pill ${o.status}">${o.status}</span></td>
+      <td><div class="oact"><select data-o="${o.id}">${ST.map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}</select><div class="r">${nx&&nx!=='cancelado'?`<button class="p" data-n="${o.id}" data-s="${nx}">→ ${nx}</button>`:''}<button data-pr="${o.id}">🖨 Imprimir</button></div></div></td></tr>`}).join('')}</tbody></table></div>`:'<p class="muted" style="margin-top:14px">Nenhum pedido nesta visão.</p>')+`</div>`;
+    document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{ofilter=b.dataset.f;load()});
+    $('#oq').oninput=e=>{oq=e.target.value;clearTimeout(load.t);load.t=setTimeout(()=>load().then(()=>{const i=$('#oq');i.focus();i.setSelectionRange(99,99)}),300)};
+    document.querySelectorAll('[data-o]').forEach(s=>s.onchange=async()=>{await api('orders/'+s.dataset.o,{method:'PATCH',body:JSON.stringify({status:s.value})});load();watch()});
+    document.querySelectorAll('[data-n]').forEach(b=>b.onclick=async()=>{await api('orders/'+b.dataset.n,{method:'PATCH',body:JSON.stringify({status:b.dataset.s})});load();watch()});
+    document.querySelectorAll('[data-pr]').forEach(b=>b.onclick=()=>printOrder(all.find(o=>o.id==b.dataset.pr)));
+  };
+  await load();timer=setInterval(()=>{const a=document.activeElement;if(!a||!['SELECT','INPUT'].includes(a.tagName))load().catch(()=>{})},20000);
+}
+function optimizePhoto(file,max=800,png=false){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();reader.onerror=()=>reject(new Error('Não foi possível ler o arquivo.'));
+    reader.onload=()=>{const img=new Image();img.onerror=()=>reject(new Error('Arquivo de imagem inválido.'));
+      img.onload=()=>{const scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));const ctx=canvas.getContext('2d');if(!png){ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height)}ctx.drawImage(img,0,0,canvas.width,canvas.height);resolve(png?canvas.toDataURL('image/png'):canvas.toDataURL('image/jpeg',0.8));};img.src=reader.result;};reader.readAsDataURL(file);
+  });
+}
+async function products(){
+  const rows=await api('products');
+  const form=(p={})=>`<div class="grid"><input placeholder="Nome" data-f="name" value="${esc(p.name)}"><input placeholder="Categoria" data-f="category" value="${esc(p.category)}"><input placeholder="Marca (ex.: Skol)" data-f="brand" value="${esc(p.brand)}"><input placeholder="Preço (ex.: 4,50)" data-f="price" value="${p.price_cents!=null?(p.price_cents/100).toFixed(2).replace('.',','):''}"><input placeholder="Descrição" data-f="description" value="${esc(p.description)}"><input placeholder="URL da foto (opcional)" data-f="image_url" ${p.has_upload?'data-keep-image="true"':''} value="${esc(p.has_upload?'':p.image_url)}"></div>`;
+  $('#body').innerHTML=`<input id="pq" placeholder="Buscar produto, marca ou categoria" style="margin-bottom:12px"><div class="box"><b>Novo produto</b>${form()}<button class="p" id="add">Adicionar</button><div class="err" id="e"></div><p class="muted">Depois de criar o produto, use a opção de foto no cartão dele para enviar uma imagem do seu computador ou celular.</p></div>`+rows.map(p=>`<div class="box" data-p="${p.id}"><b>${esc(p.name)}</b><div class="photo-row"><img class="photo-preview" data-preview src="${p.image_url&&/^https?:|^data:image|^\//.test(p.image_url)?esc(p.image_url):''}" onerror="this.style.visibility='hidden'" style="${p.image_url?'':'visibility:hidden'}"><div class="photo-controls"><input type="file" accept="image/jpeg,image/png,image/webp" data-photo aria-label="Escolher foto de ${esc(p.name)}"><button type="button" data-upload>Enviar foto</button><button type="button" data-remove-photo class="d">Remover foto</button></div></div>${form(p)}<label class="muted"><input type="checkbox" data-f="active" ${p.active?'checked':''} style="width:auto;min-height:0"> Disponível no cardápio</label><div class="top" style="margin-top:8px"><button class="p" data-save>Salvar</button><button class="d" data-del>Excluir</button></div><div class="muted" data-photo-status aria-live="polite"></div></div>`).join('');
+  const read=el=>{const o={};el.querySelectorAll('[data-f]').forEach(i=>{if(i.dataset.f==='image_url'&&i.dataset.keepImage==='true')return;o[i.dataset.f]=i.type==='checkbox'?i.checked:i.value});return o};
+  document.querySelectorAll('[data-f="image_url"]').forEach(i=>i.addEventListener('input',()=>delete i.dataset.keepImage));
+  $('#pq').oninput=e=>{const q=e.target.value.toLowerCase();document.querySelectorAll('[data-p]').forEach(b=>{b.style.display=[...b.querySelectorAll('[data-f]')].map(i=>i.value).join(' ').toLowerCase().includes(q)?'':'none'})};
+  $('#add').onclick=async()=>{try{const o=read($('#add').parentElement);o.active=true;await api('products',{method:'POST',body:JSON.stringify(o)});products()}catch(e){$('#e').textContent=e.message}};
+  document.querySelectorAll('[data-p]').forEach(b=>{
+    b.querySelector('[data-save]').onclick=async e=>{try{await api('products/'+b.dataset.p,{method:'PUT',body:JSON.stringify(read(b))});e.target.textContent='Salvo ✓'}catch(x){alert(x.message)}};
+    b.querySelector('[data-del]').onclick=async()=>{if(confirm('Excluir este produto?')){await api('products/'+b.dataset.p,{method:'DELETE'});products()}};
+    b.querySelector('[data-upload]').onclick=async e=>{
+      const input=b.querySelector('[data-photo]'), file=input.files?.[0], status=b.querySelector('[data-photo-status]');
+      if(!file){status.textContent='Escolha uma foto primeiro.';return}
+      if(!['image/jpeg','image/png','image/webp'].includes(file.type)){status.textContent='Use uma imagem JPG, PNG ou WebP.';return}
+      try{
+        status.textContent='Preparando imagem…';
+        const imageData=await optimizePhoto(file);
+        await api('products/'+b.dataset.p+'/image',{method:'PUT',body:JSON.stringify({image_data:imageData})});
+        const preview=b.querySelector('[data-preview]');preview.src=imageData;preview.style.visibility='visible';
+        b.querySelector('[data-f="image_url"]').dataset.keepImage='true';
+        status.textContent='Foto enviada e salva no banco de dados ✓';
+      }catch(x){status.textContent=x.message||'Não foi possível enviar a foto.'}
+    };
+    b.querySelector('[data-remove-photo]').onclick=async()=>{
+      if(!confirm('Remover a foto enviada deste produto?'))return;
+      try{await api('products/'+b.dataset.p+'/image',{method:'DELETE'});b.querySelector('[data-preview]').style.visibility='hidden';b.querySelector('[data-preview]').removeAttribute('src');b.querySelector('[data-f="image_url"]').value='';b.querySelector('[data-f="image_url"]').dataset.keepImage='true';b.querySelector('[data-photo-status]').textContent='Foto removida.'}catch(x){alert(x.message)}
+    };
+  });
+}
+async function brands(){
+  const j=await fetch('/api/config').then(r=>r.json());
+  $('#body').innerHTML=`<div class="box"><b>Marca</b><div class="grid"><input id="bn" placeholder="Nome (ex.: Skol)"><input id="bl" placeholder="URL da logo (opcional)"><input id="bk" placeholder="Cor (ex.: #f2d21c)"></div><button class="p" id="ba">Salvar marca</button><div class="err" id="e"></div><p class="muted">Se a marca já existir, ela é atualizada. Sem logo, aparece um selo colorido com as iniciais. Depois de salvar a marca, envie a logo pelo cartão dela (JPG, PNG ou WebP). No cadastro do produto, escreva o mesmo nome da marca.</p></div>`+j.brands.map(b=>`<div class="box" data-br="${b.id}"><div class="top" style="align-items:center"><span><b>${esc(b.name)}</b> <span class="muted">${esc(b.color)}</span></span><button class="d" data-b="${b.id}">Excluir marca</button></div><div class="photo-row"><img class="photo-preview" data-lp src="${b.logo_url?esc(b.logo_url):''}" onerror="this.style.visibility='hidden'" style="${b.logo_url?'':'visibility:hidden'}"><div class="photo-controls"><input type="file" accept="image/jpeg,image/png,image/webp" data-lf aria-label="Escolher logo de ${esc(b.name)}"><button type="button" data-lu>Enviar logo</button><button type="button" class="d" data-lr>Remover logo</button></div></div><div class="muted" data-ls aria-live="polite"></div></div>`).join('');
+  $('#ba').onclick=async()=>{try{await api('brands',{method:'POST',body:JSON.stringify({name:$('#bn').value,logo_url:$('#bl').value,color:$('#bk').value})});brands()}catch(e){$('#e').textContent=e.message}};
+  document.querySelectorAll('[data-br]').forEach(box=>{
+    const id=box.dataset.br,st=box.querySelector('[data-ls]'),pv=box.querySelector('[data-lp]');
+    box.querySelector('[data-lu]').onclick=async()=>{const f=box.querySelector('[data-lf]').files?.[0];
+      if(!f){st.textContent='Escolha uma imagem primeiro.';return}
+      if(!['image/jpeg','image/png','image/webp'].includes(f.type)){st.textContent='Use uma imagem JPG, PNG ou WebP.';return}
+      try{st.textContent='Preparando logo…';const d=await optimizePhoto(f,256,true);await api('brands/'+id+'/logo',{method:'PUT',body:JSON.stringify({image_data:d})});pv.src=d;pv.style.visibility='visible';st.textContent='Logo atualizada ✓'}catch(x){st.textContent=x.message||'Não foi possível enviar a logo.'}};
+    box.querySelector('[data-lr]').onclick=async()=>{if(!confirm('Remover a logo desta marca?'))return;
+      try{await api('brands/'+id+'/logo',{method:'DELETE'});pv.style.visibility='hidden';pv.removeAttribute('src');st.textContent='Logo removida. Se houver arquivo em public/brands/, ele volta a ser usado.'}catch(x){st.textContent=x.message}};
+  });
+  document.querySelectorAll('[data-b]').forEach(b=>b.onclick=async()=>{await api('brands/'+b.dataset.b,{method:'DELETE'});brands()});
+}
+async function zones(){
+  const list=await api('zones');
+  const moneyIn=c=>(c/100).toFixed(2).replace('.',',');
+  $('#body').innerHTML=`<div class="box"><b>Novo bairro</b><div class="grid"><input id="zn" placeholder="Bairro"><input id="zf" inputmode="decimal" placeholder="Taxa (ex.: 6,00)"></div><button class="p" id="za">Adicionar bairro</button><div class="err" id="e"></div><p class="muted">Bairro desativado some do site, mas continua aqui para você reativar depois. Dá para mudar o nome e a taxa direto na lista.</p></div>`+
+  (list.length?list.map(z=>`<div class="box ${z.active?'':'st-cancelado'}" data-zr="${z.id}"><div class="grid" style="grid-template-columns:2fr 1fr;align-items:center"><input data-zf="name" value="${esc(z.name)}" aria-label="Nome do bairro"><input data-zf="fee" inputmode="decimal" value="${moneyIn(z.fee_cents)}" aria-label="Taxa de ${esc(z.name)} (R$)"></div><div class="top" style="align-items:center;margin-top:8px"><label class="muted"><input type="checkbox" data-zf="active" ${z.active?'checked':''} style="width:auto;min-height:0"> Ativo (aparece no site)</label><span style="display:flex;gap:6px"><button class="p" data-zs>Salvar</button><button class="d" data-zd>Excluir</button></span></div><div class="err" data-ze></div></div>`).join(''):'<p class="muted">Nenhum bairro cadastrado.</p>');
+  $('#za').onclick=async()=>{try{await api('zones',{method:'POST',body:JSON.stringify({name:$('#zn').value,fee:$('#zf').value})});zones()}catch(e){$('#e').textContent=e.message}};
+  document.querySelectorAll('[data-zr]').forEach(b=>{
+    const f=k=>b.querySelector('[data-zf="'+k+'"]'),er=b.querySelector('[data-ze]');
+    b.querySelector('[data-zs]').onclick=async e=>{try{await api('zones/'+b.dataset.zr,{method:'PATCH',body:JSON.stringify({name:f('name').value,fee:f('fee').value,active:f('active').checked})});zones()}catch(x){er.textContent=x.message}};
+    b.querySelector('[data-zd]').onclick=async()=>{if(!confirm('Excluir este bairro da lista de entrega?'))return;try{await api('zones/'+b.dataset.zr,{method:'DELETE'});zones()}catch(x){er.textContent=x.message}};
+  });
+}
+
+
+
+/* ---------- Cupons ---------- */
+async function coupons(){
+  const list=await api('coupons');
+  const desc=c=>c.discount_type==='percent'?c.discount_value+'% de desconto':brl(c.discount_value)+' de desconto';
+  $('#body').innerHTML=`<div class="box"><b>Novo cupom</b><div class="grid"><label class="muted">Código<input id="k-code" maxlength="40" placeholder="Ex.: BAR10" autocapitalize="characters"></label><label class="muted">Tipo de desconto<select id="k-type"><option value="percent">Porcentagem (%)</option><option value="fixed">Valor fixo (R$)</option></select></label><label class="muted"><span id="k-vl">Desconto (%)</span><input id="k-val" inputmode="decimal" placeholder="Ex.: 10"></label><label class="muted">Pedido mínimo (R$)<input id="k-min" inputmode="decimal" placeholder="0 = sem mínimo"></label></div><label class="muted" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="k-pub" style="width:auto;min-height:0"> Mostrar para clientes logados (aparece em “Meus cupons” no site)</label><button class="p" id="k-add">Criar cupom</button><div class="err" id="e"></div><p class="muted">O cliente digita o código no fim do pedido. O desconto vale sobre o valor das bebidas, antes da entrega, e o mínimo também conta só as bebidas. Desativar só pausa o cupom; excluir apaga o código (os pedidos antigos continuam com o registro do desconto).</p></div>`+
+  (list.length?list.map(c=>`<div class="box ${c.active?'':'st-cancelado'}"><div class="top" style="align-items:center"><span><b>${esc(c.code)}</b><br><span class="muted">${desc(c)} · mínimo ${c.min_subtotal_cents?brl(c.min_subtotal_cents):'nenhum'}</span><br><span class="muted">Usado em ${c.uses} pedido(s) · ${brl(c.discounted)} em descontos</span></span><span style="display:flex;gap:10px;align-items:center"><label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-kp="${c.id}" ${c.public?'checked':''} style="width:auto;min-height:0"> Visível p/ clientes</label><label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ka="${c.id}" ${c.active?'checked':''} style="width:auto;min-height:0"> Ativo</label><button class="d" data-kd="${c.id}">Excluir</button></span></div><div class="err" data-ke="${c.id}"></div></div>`).join(''):'<p class="muted">Nenhum cupom cadastrado.</p>');
+  $('#k-type').onchange=()=>{$('#k-vl').textContent=$('#k-type').value==='percent'?'Desconto (%)':'Desconto (R$)'};
+  $('#k-add').onclick=async()=>{
+    const e=$('#e');e.textContent='';
+    try{
+      const type=$('#k-type').value,raw=$('#k-val').value.trim();
+      let value;
+      if(type==='percent'){value=/^\d{1,3}$/.test(raw)?+raw:null;if(!value||value>100)throw new Error('Na porcentagem, digite um número de 1 a 100.')}
+      else{value=toCents(raw);if(!value)throw new Error('Digite o desconto em reais. Ex.: 10,00')}
+      const min=$('#k-min').value.trim()===''?0:toCents($('#k-min').value);
+      if(min===null)throw new Error('Digite o pedido mínimo em reais. Ex.: 50,00');
+      await api('coupons',{method:'POST',body:JSON.stringify({code:$('#k-code').value,discountType:type,discountValue:value,minSubtotalCents:min,public:$('#k-pub').checked})});coupons();
+    }catch(x){e.textContent=x.message}
+  };
+  document.querySelectorAll('[data-ka]').forEach(c=>c.onchange=async()=>{
+    try{await api('coupons/'+c.dataset.ka,{method:'PATCH',body:JSON.stringify({active:c.checked})});c.closest('.box').classList.toggle('st-cancelado',!c.checked)}
+    catch(x){c.checked=!c.checked;document.querySelector('[data-ke="'+c.dataset.ka+'"]').textContent=x.message}});
+  document.querySelectorAll('[data-kp]').forEach(c=>c.onchange=async()=>{
+    try{await api('coupons/'+c.dataset.kp,{method:'PATCH',body:JSON.stringify({public:c.checked})})}
+    catch(x){c.checked=!c.checked;document.querySelector('[data-ke="'+c.dataset.kp+'"]').textContent=x.message}});
+  document.querySelectorAll('[data-kd]').forEach(b=>b.onclick=async()=>{
+    if(!confirm('Excluir este cupom?'))return;
+    try{await api('coupons/'+b.dataset.kd,{method:'DELETE'});coupons()}catch(x){document.querySelector('[data-ke="'+b.dataset.kd+'"]').textContent=x.message}});
+}
+
+
+/* ---------- Clientes ---------- */
+async function customers(){
+  const list=await api('customers');
+  const fp=v=>{const d=String(v||'').replace(/\D/g,'');return d.length===11?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d};
+  $('#body').innerHTML=`<div class="panel-card"><h2>Clientes</h2><p class="muted" style="margin:6px 0 14px">Clientes que criaram conta no site. Cada R$ 1,00 em bebidas de pedido <b>entregue</b> vale 1 ponto. Se alguém esquecer a senha, defina uma nova aqui e passe pelo WhatsApp.</p>
+  <input id="cq" placeholder="Buscar por nome ou telefone" style="margin-bottom:12px">
+  ${list.length?`<div class="tw"><table class="otable"><thead><tr><th>Cliente</th><th>WhatsApp</th><th>Pedidos</th><th>Gasto</th><th>Pontos</th><th>Desde</th><th>Ação</th></tr></thead><tbody>${list.map(c=>`<tr data-cr="${esc((c.name+' '+c.phone).toLowerCase())}"><td><b>${esc(c.name)}</b>${c.zone?`<div class="muted">${esc(c.zone)}</div>`:''}</td><td><a href="https://wa.me/55${esc(c.phone)}">${esc(fp(c.phone))}</a></td><td>${c.orders}</td><td>${brl(c.spent)}</td><td><b>${c.points}</b></td><td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td><td><div class="oact"><div class="r"><button data-cp="${c.id}">Nova senha</button><button class="d" data-cd="${c.id}">Excluir</button></div></div></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nenhum cliente cadastrado ainda.</p>'}<div class="err" id="e"></div></div>`;
+  const q=$('#cq');if(q)q.oninput=()=>{const v=q.value.toLowerCase();document.querySelectorAll('[data-cr]').forEach(r=>r.style.display=r.dataset.cr.includes(v)?'':'none')};
+  document.querySelectorAll('[data-cp]').forEach(b=>b.onclick=async()=>{
+    const pw=prompt('Nova senha para este cliente (mínimo 6 caracteres):');if(!pw)return;
+    try{await api('customers/'+b.dataset.cp+'/password',{method:'POST',body:JSON.stringify({password:pw})});alert('Senha alterada. Avise o cliente pelo WhatsApp.')}catch(x){alert(x.message)}});
+  document.querySelectorAll('[data-cd]').forEach(b=>b.onclick=async()=>{
+    if(!confirm('Excluir esta conta? Os pedidos antigos continuam no painel.'))return;
+    try{await api('customers/'+b.dataset.cd,{method:'DELETE'});customers()}catch(x){$('#e').textContent=x.message}});
+}
+
+/* ---------- Relatórios ---------- */
+const WD=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const PAYN={dinheiro:'Dinheiro',pix:'Pix',cartao:'Cartão'};
+function repRows(items,key,label,sub,peakKey){
+  if(!items.length)return '<p class="muted">Sem pedidos no período.</p>';
+  const mx=Math.max(1,...items.map(x=>x[key])),pk=items.reduce((a,x)=>x[key]>a[key]?x:a,items[0]);
+  return items.map(x=>`<div class="rb ${x===pk&&peakKey?'pk':''}"><span>${label(x)}</span><div><i style="width:${Math.max(3,x[key]/mx*100)}%"></i></div><b>${sub(x)}${x===pk&&peakKey?`<span class="badge">${peakKey}</span>`:''}</b></div>`).join('');
+}
+async function reports(days){
+  days=days||+(sessionStorage.getItem('bdc_rdays')||30);sessionStorage.setItem('bdc_rdays',days);
+  const [d,per]=await Promise.all([api('reports?days='+days),api('reports/periods')]);
+  const s=d.summary;
+  // Madrugada junto da noite: a lista de horas começa às 6h e termina às 5h.
+  const hours=[...d.hours].sort((a,b)=>((a.hour+18)%24)-((b.hour+18)%24));
+  const pkH=hours.length?hours.reduce((a,h)=>h.orders>a.orders?h:a,hours[0]):null;
+  const pkD=d.weekdays.length?d.weekdays.reduce((a,x)=>x.orders>a.orders?x:a,d.weekdays[0]):null;
+  const mxDay=Math.max(1,...d.daily.map(x=>x.revenue));
+  $('#body').innerHTML=`<div class="box"><b>Resumo por período</b><div class="cards" style="margin:10px 0 0">${per.map(p=>`<div class="card"><span class="muted">${esc(p.label)}</span><b>${brl(p.revenue)}</b><span class="muted">${p.orders} pedido(s) · ticket ${brl(p.average_ticket)}</span></div>`).join('')}</div></div>
+  <div class="chips">${[[7,'Últimos 7 dias'],[30,'Últimos 30 dias'],[90,'Últimos 90 dias']].map(p=>`<button data-rd="${p[0]}" class="${p[0]===days?'on':''}">${p[1]}</button>`).join('')}</div>
+  <div class="cards"><div class="card"><span class="muted">Faturamento no período</span><b>${brl(s.revenue)}</b></div><div class="card"><span class="muted">Pedidos</span><b>${s.orders}</b></div><div class="card"><span class="muted">Ticket médio</span><b>${brl(s.average_ticket)}</b></div><div class="card"><span class="muted">Taxas de entrega</span><b>${brl(s.fees)}</b></div><div class="card"><span class="muted">Descontos de cupons</span><b>${brl(s.discounts)}</b><span class="muted">${s.coupon_orders} pedido(s) com cupom</span></div></div>
+  <div class="box"><b>Faturamento por dia</b><div style="margin-top:8px">${d.daily.some(x=>x.orders)?d.daily.map(x=>`<div class="rb"><span>${x.day}</span><div><i style="width:${x.revenue?Math.max(3,x.revenue/mxDay*100):0}%"></i></div><b>${brl(x.revenue)}</b><small>${x.orders} pedido(s)</small></div>`).join(''):'<p class="muted">Sem vendas no período.</p>'}</div></div>
+  <div class="box"><b>Mais vendidos</b>${d.top.length?d.top.map((t,i)=>`<div class="row"><span>${i+1}. ${esc(t.name)}</span><span>${t.quantity} un · ${brl(t.revenue)}</span></div>`).join(''):'<p class="muted">Ainda não há itens vendidos no período.</p>'}</div>
+  <div class="box"><b>Horários de pico</b>${pkH?`<p class="muted">Pedidos por hora (horário de Brasília). Maior movimento: <b>${pkH.hour}h às ${(pkH.hour+1)%24}h</b>, com ${pkH.orders} pedido(s) — bom momento para reforçar a equipe e o estoque gelado.</p>`:''}${repRows(hours,'orders',h=>String(h.hour).padStart(2,'0')+'h',h=>h.orders+' · '+brl(h.revenue),'pico')}</div>
+  <div class="box"><b>Dias da semana</b>${pkD?`<p class="muted">Dia mais movimentado: <b>${WD[pkD.dow]}</b> (${pkD.orders} pedido(s)).</p>`:''}${repRows(d.weekdays,'orders',x=>WD[x.dow].slice(0,3),x=>x.orders+' · '+brl(x.revenue),'mais movimentado')}</div>
+  <div class="box"><b>Formas de pagamento</b>${d.payments.length?d.payments.map(x=>`<div class="row"><span>${esc(PAYN[x.payment]||x.payment)}</span><span>${x.orders} pedido(s) · ${brl(x.revenue)}</span></div>`).join(''):'<p class="muted">Sem pedidos no período.</p>'}</div>`;
+  document.querySelectorAll('[data-rd]').forEach(b=>b.onclick=()=>reports(+b.dataset.rd));
+}
+
+/* ---------- Funcionamento ---------- */
+let paused=false;
+async function refreshPause(){
+  try{
+    const [s,st]=await Promise.all([api('settings'),fetch('/api/store',{cache:'no-store'}).then(r=>r.json())]);
+    paused=s.manual_closed==='true';const b=$('#pause');if(!b)return;
+    b.textContent=paused?'▶ Reabrir pedidos':'Ⅱ Pausar pedidos';b.className=paused?'p':'d';
+    b.title=st.open?'Aberto agora':(st.message||'Fechado');
+    let el=$('#sbar');if(!el){el=document.createElement('div');el.id='sbar';el.className='muted';el.style.margin='-6px 0 14px';$('#body').before(el)}
+    el.textContent=(st.open?'🟢 Aberto agora para pedidos':'🔴 Fechado para pedidos')+(st.open?'':' — '+st.message);
+  }catch(e){}
+}
+async function togglePause(){
+  try{await api('settings',{method:'PATCH',body:JSON.stringify({manual_closed:String(!paused)})});await refreshPause()}catch(e){alert(e.message)}
+}
+async function settings(){
+  const s=await api('settings');
+  const days=(s.opening_days||'').split(',');
+  const DN=[['1','Seg'],['2','Ter'],['3','Qua'],['4','Qui'],['5','Sex'],['6','Sáb'],['0','Dom']];
+  const reais=v=>Number(v)>0?String(Number(v)).replace('.',','):'';
+  $('#body').innerHTML=`<div class="box"><b>Funcionamento do bar</b>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+   <label class="muted">Nome do bar<input id="s-name" maxlength="120" value="${esc(s.store_name)}"></label>
+   <label class="muted">WhatsApp (DDI + DDD + número)<input id="s-wa" inputmode="numeric" placeholder="5524999999999" value="${esc(s.whatsapp_number)}"></label>
+   <label class="muted">Abre às<input id="s-open" type="time" value="${esc(s.opening_time)}"></label>
+   <label class="muted">Fecha às<input id="s-close" type="time" value="${esc(s.closing_time)}"></label>
+   <label class="muted">Previsão mínima (min)<input id="s-emin" inputmode="numeric" placeholder="Ex.: 30" value="${esc(s.estimated_minutes_min)}"></label>
+   <label class="muted">Previsão máxima (min)<input id="s-emax" inputmode="numeric" placeholder="Ex.: 50" value="${esc(s.estimated_minutes_max)}"></label>
+   <label class="muted">Frete grátis a partir de (R$)<input id="s-free" inputmode="decimal" placeholder="0 = desligado" value="${esc(reais(s.free_delivery_min))}"></label>
+  </div>
+  <p class="muted">Se o horário de fechar for menor que o de abrir (ex.: abre 18:00, fecha 02:00), o bar funciona até de madrugada. Abre e fecha no mesmo horário = 24 horas. A madrugada conta como parte do dia em que o bar abriu.</p>
+  <div class="chips" id="s-days" style="margin-top:10px">${DN.map(d=>`<button type="button" data-d="${d[0]}" class="${days.includes(d[0])?'on':''}">${d[1]}</button>`).join('')}</div>
+  <label class="muted" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="s-man" ${s.manual_closed==='true'?'checked':''} style="width:auto;min-height:0"> Fechar manualmente (o site para de aceitar pedidos)</label>
+  <p class="muted">Frete grátis vale só sobre o valor das bebidas. A previsão aparece para o cliente no site e na confirmação do pedido. Fora do horário ou com o fechamento manual ligado, o site mostra o aviso de fechado e não envia pedidos.</p>
+  <button class="p" id="s-save">Salvar configurações</button><div class="err" id="e" role="status"></div></div>`;
+  document.querySelectorAll('#s-days [data-d]').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+  $('#s-save').onclick=async()=>{
+    const e=$('#e');e.style.color='';e.textContent='Salvando…';
+    try{
+      const body={store_name:$('#s-name').value,whatsapp_number:$('#s-wa').value.replace(/\D/g,''),opening_time:$('#s-open').value,closing_time:$('#s-close').value,
+        estimated_minutes_min:$('#s-emin').value,estimated_minutes_max:$('#s-emax').value,free_delivery_min:$('#s-free').value,
+        opening_days:[...document.querySelectorAll('#s-days .on')].map(b=>b.dataset.d).join(','),manual_closed:String($('#s-man').checked)};
+      await api('settings',{method:'PATCH',body:JSON.stringify(body)});
+      e.style.color='#6be08a';e.textContent='Configurações salvas ✓';refreshPause();
+    }catch(x){e.textContent=x.message}
+  };
+}
+
+/* ---------- Caixa ---------- */
+const KIND={suprimento:'Entrada de dinheiro',sangria:'Retirada (sangria)',despesa:'Despesa paga do caixa'};
+const METHODS=['Dinheiro','Pix','Cartão'];
+let cashLast=null;
+function toCents(t){const raw=String(t??'').trim().replace(/^R\$\s*/i,'');const n=/,/.test(raw)?raw.replace(/\./g,'').replace(',','.'):raw;
+  return /^\d+(\.\d{1,2})?$/.test(n)?Math.round(Number(n)*100):null}
+const when=d=>new Date(d).toLocaleString('pt-BR');
+const diffTxt=c=>+c===0?'Caixa batendo ✓':+c>0?'Sobrou '+brl(c):'Faltou '+brl(-c);
+const diffCls=c=>+c===0?'ok':+c>0?'over':'short';
+function cashSummary(s){
+  const rows=Object.entries(s.byMethod||{}).filter(([m,v])=>METHODS.includes(m)||v.orders>0).map(([m,v])=>`<tr><td>${esc(m)}</td><td>${v.orders}</td><td>${brl(v.totalCents)}</td></tr>`).join('');
+  return `<div class="cards"><div class="card"><span class="muted">Troco inicial</span><b>${brl(s.openingCents)}</b></div><div class="card"><span class="muted">Vendas em dinheiro</span><b>${brl(s.cashSalesCents)}</b></div><div class="card"><span class="muted">Entradas / retiradas / despesas</span><b style="font-size:16px">+${brl(s.suppliesCents)} / −${brl(s.withdrawalsCents)} / −${brl(s.expensesCents)}</b></div><div class="card" style="border-color:var(--amber)"><span class="muted">Dinheiro que deve ter no caixa</span><b>${brl(s.expectedCashCents)}</b></div></div>
+  <div class="tw"><table><thead><tr><th>Forma de pagamento</th><th>Pedidos</th><th>Total</th></tr></thead><tbody>${rows}<tr><td><b>Total vendido</b></td><td><b>${s.totalOrders}</b></td><td><b>${brl(s.totalSalesCents)}</b></td></tr></tbody></table></div>`;
+}
+function cashMoves(list,canDel){
+  if(!list.length)return '<p class="muted">Nenhum lançamento ainda.</p>';
+  return `<div class="tw"><table><thead><tr><th>Hora</th><th>Tipo</th><th>Motivo</th><th>Valor</th><th></th></tr></thead><tbody>${list.map(m=>`<tr><td>${when(m.created_at)}</td><td>${KIND[m.kind]||m.kind}</td><td>${esc(m.reason)}</td><td>${m.kind==='suprimento'?'+':'−'}${brl(m.amount_cents)}</td><td>${canDel?`<button class="d small" data-cdel="${m.id}">Desfazer</button>`:''}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function cashReport(r,title){
+  const s=r.session;
+  return `<div class="box"><b>${esc(title)}</b><p class="muted">Aberto em ${when(s.opened_at)} por ${esc(s.opened_by)}${s.closed_at?' · Fechado em '+when(s.closed_at)+' por '+esc(s.closed_by):''}</p>${cashSummary(r.summary)}
+  ${s.closed_at?`<div class="result ${diffCls(s.difference_cents)}"><span>Esperado ${brl(s.expected_cents)} · Contado ${brl(s.counted_cents)}</span><span>${diffTxt(s.difference_cents)}</span></div>${s.open_notes?`<p class="muted">Obs. na abertura: ${esc(s.open_notes)}</p>`:''}${s.close_notes?`<p class="muted">Obs. no fechamento: ${esc(s.close_notes)}</p>`:''}`:''}
+  <b>Lançamentos</b>${cashMoves(r.movements,false)}<button data-cprint="${s.id}" style="margin-top:8px">🖨️ Imprimir relatório</button></div>`;
+}
+function printCash(r){
+  const s=r.session,m=r.summary,ln=(a,b)=>`${String(a).padEnd(18)}${String(b).padStart(14)}`;
+  const meth=Object.entries(m.byMethod||{}).filter(([k,v])=>METHODS.includes(k)||v.orders>0).map(([k,v])=>ln(k+' ('+v.orders+')',brl(v.totalCents))).join('\n');
+  const mov=r.movements.map(x=>ln(KIND[x.kind]||x.kind,(x.kind==='suprimento'?'+':'-')+brl(x.amount_cents))+'\n   '+esc(x.reason)).join('\n')||'Sem lançamentos';
+  const w=window.open('','_blank','width=380,height=700');if(!w)return alert('Libere pop-ups para imprimir.');
+  w.document.write(`<pre style="font:13px/1.4 monospace;white-space:pre-wrap">BAR ON-LINE DO CRUZEIRO
+RELATÓRIO DE CAIXA
+--------------------------------
+Abertura: ${when(s.opened_at)}
+${esc(s.opened_by)}
+${s.closed_at?'Fechamento: '+when(s.closed_at)+'\n'+esc(s.closed_by):'Caixa ainda aberto'}
+--------------------------------
+VENDAS
+${esc(meth)}
+${ln('Total vendido',brl(m.totalSalesCents))}
+--------------------------------
+DINHEIRO
+${ln('Troco inicial',brl(m.openingCents))}
+${ln('Vendas em dinheiro',brl(m.cashSalesCents))}
+${ln('Entradas','+'+brl(m.suppliesCents))}
+${ln('Retiradas','-'+brl(m.withdrawalsCents))}
+${ln('Despesas','-'+brl(m.expensesCents))}
+${ln('ESPERADO',brl(m.expectedCashCents))}${s.closed_at?'\n'+ln('Contado',brl(s.counted_cents))+'\n*** '+diffTxt(s.difference_cents)+' ***'+(s.close_notes?'\nObs.: '+esc(s.close_notes):''):''}
+--------------------------------
+LANÇAMENTOS
+${mov}</pre>`);w.document.close();w.focus();w.print();
+}
+async function cash(){
+  document.title='Painel — Bar On-line do Cruzeiro';
+  const [cur,hist]=await Promise.all([api('cash/current'),api('cash/history')]);
+  const by=`<label class="muted">Responsável (opcional)<input id="c-by" maxlength="60" placeholder="Seu nome" value="${esc(sessionStorage.getItem('bdc_by')||'')}"></label>`;
+  let html='';
+  if(cashLast&&!cur.session)html+=cashReport(cashLast,'Caixa fechado agora');
+  if(!cur.session){
+    html+=`<div class="box"><b>🔒 Caixa fechado</b><p class="muted">Conte o dinheiro da gaveta e informe como troco inicial para abrir o caixa.</p><div class="grid"><label class="muted">Troco inicial (R$)<input id="c-open" inputmode="decimal" placeholder="Ex.: 100,00"></label><label class="muted">Observação (opcional)<input id="c-onotes" maxlength="500" placeholder="Ex.: turno da noite"></label>${by}</div><label class="muted" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="c-resume" style="width:auto;min-height:0"> Reabrir os pedidos do site ao abrir o caixa</label><button class="p" id="c-open-go">Abrir caixa</button><div class="err" id="c-err"></div></div>`;
+  }else{
+    html+=`<div class="box"><b>🔓 Caixa aberto</b><p class="muted">Desde ${when(cur.session.opened_at)} por ${esc(cur.session.opened_by)}. Os valores contam os pedidos não cancelados desde a abertura.</p>${cashSummary(cur.summary)}</div>
+    <div class="box"><b>Lançar movimento</b><div class="grid"><label class="muted">Tipo<select id="c-kind"><option value="sangria">Retirada (sangria)</option><option value="despesa">Despesa paga do caixa</option><option value="suprimento">Entrada de dinheiro</option></select></label><label class="muted">Valor (R$)<input id="c-amt" inputmode="decimal" placeholder="Ex.: 20,00"></label><label class="muted">Motivo<input id="c-reason" maxlength="200" placeholder="Ex.: compra de gelo"></label>${by}</div><button class="p" id="c-move-go">Lançar</button><div class="err" id="c-err"></div>${cashMoves(cur.movements,true)}</div>
+    <div class="box"><b>Fechar caixa</b><p class="muted">Conte todo o dinheiro da gaveta e informe o valor. O sistema compara com o esperado (<b>${brl(cur.summary.expectedCashCents)}</b>).</p><div class="grid"><label class="muted">Dinheiro contado (R$)<input id="c-count" inputmode="decimal" placeholder="Ex.: 250,00"></label><label class="muted">Observação (opcional)<input id="c-cnotes" maxlength="500" placeholder="Ex.: faltou troco"></label></div><label class="muted" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="c-pause" style="width:auto;min-height:0"> Pausar os pedidos do site ao fechar o caixa</label><button class="d" id="c-close-go">Fechar caixa</button><div class="err" id="c-err2"></div></div>`;
+  }
+  html+=`<h2 style="font-size:18px;margin:16px 0 8px">Caixas anteriores</h2>`+(hist.length?`<div class="box tw"><table><thead><tr><th>Aberto</th><th>Fechado</th><th>Responsável</th><th>Esperado</th><th>Contado</th><th>Resultado</th><th></th></tr></thead><tbody>${hist.map(h=>`<tr><td>${when(h.opened_at)}</td><td>${when(h.closed_at)}</td><td>${esc(h.closed_by)}</td><td>${brl(h.expected_cents)}</td><td>${brl(h.counted_cents)}</td><td class="${diffCls(h.difference_cents)}">${diffTxt(h.difference_cents)}</td><td><button class="small" data-cview="${h.id}">Ver</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nenhum caixa fechado ainda.</p>');
+  $('#body').innerHTML='<div id="c-detail"></div>'+html;
+  const by_=()=>{const v=($('#c-by')?.value||'').trim();if($('#c-by'))sessionStorage.setItem('bdc_by',v);return v};
+  const run=(errSel,fn)=>async()=>{try{await fn()}catch(e){const el=$(errSel);if(el)el.textContent=e.message;else alert(e.message)}};
+  const post=(path,body,m='POST')=>api('cash/'+path,{method:m,body:JSON.stringify(body)});
+  if($('#c-open-go'))$('#c-open-go').onclick=run('#c-err',async()=>{
+    const c=toCents($('#c-open').value);if(c===null)throw new Error('Digite o troco inicial em reais. Ex.: 100,00');
+    cashLast=null;await post('open',{openingCents:c,notes:$('#c-onotes').value,by:by_(),resumeOrders:$('#c-resume').checked});await cash();refreshPause()});
+  if($('#c-move-go'))$('#c-move-go').onclick=run('#c-err',async()=>{
+    const c=toCents($('#c-amt').value);if(!c)throw new Error('Digite um valor maior que zero. Ex.: 20,00');
+    await post('movements',{kind:$('#c-kind').value,amountCents:c,reason:$('#c-reason').value,by:by_()});cash()});
+  if($('#c-close-go'))$('#c-close-go').onclick=run('#c-err2',async()=>{
+    const c=toCents($('#c-count').value);if(c===null)throw new Error('Digite o dinheiro contado em reais. Ex.: 250,00');
+    if(!confirm('Fechar o caixa agora? Depois de fechado ele não pode ser alterado.'))return;
+    cashLast=await post('close',{countedCents:c,notes:$('#c-cnotes').value,by:(sessionStorage.getItem('bdc_by')||''),pauseOrders:$('#c-pause').checked});await cash();refreshPause()});
+  document.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=run('',async()=>{
+    if(!confirm('Desfazer este lançamento?'))return;await api('cash/movements/'+b.dataset.cdel,{method:'DELETE'});cash()}));
+  document.querySelectorAll('[data-cview]').forEach(b=>b.onclick=run('',async()=>{
+    const r=await api('cash/sessions/'+b.dataset.cview);$('#c-detail').innerHTML=cashReport(r,'Detalhes do caixa');
+    document.querySelectorAll('[data-cprint]').forEach(x=>x.onclick=()=>printCash(r));scrollTo({top:0,behavior:'smooth'})}));
+  document.querySelectorAll('[data-cprint]').forEach(x=>x.onclick=()=>printCash(cashLast));
+}
+
+/* ---------- Estoque (mesmo desenho e fluxo do Açaí da Roça) ---------- */
+async function watchStock(){try{const s=await api('estoque/summary');stockAlert=s.low+s.empty;const t=document.querySelector('[data-t=estoque]');if(t)t.textContent='Estoque'+(stockAlert?' ('+stockAlert+')':'')}catch(e){}}
+const UL={un:'un.',kg:'kg',g:'g',l:'L',ml:'ml'},MV={entrada:'Compra',saida:'Retirada',perda:'Perda',conferencia:'Correção de saldo',ajuste:'Ajuste',venda:'Baixa de pedido',devolucao:'Devolução'},MS={entrada:'+',devolucao:'+',saida:'−',perda:'−',venda:'−'};
+const unitLabel=u=>UL[u]||u||'',nf=(n,max=3)=>Number(n||0).toLocaleString('pt-BR',{maximumFractionDigits:max}),toNum=v=>Number(String(v??'').trim().replace(',','.'));
+const positive=(v,l)=>{const n=toNum(v);if(!Number.isFinite(n)||n<=0)throw new Error(l+' precisa ser maior que zero.');return n};
+const nonNeg=(v,l)=>{const n=toNum(v===''?0:v);if(!Number.isFinite(n)||n<0)throw new Error(l+' não pode ser negativo.');return n};
+let sFilter={q:'',st:'all'},sItems=[];
+function stStatus(i){const q=i.quantity,cap=Math.max(i.capacity||0,q),m=i.minimum||0,p=cap>0?Math.max(0,Math.min(100,q/cap*100)):0;
+  if(q<=0)return{key:'empty',label:'Esgotado',percent:0};if((m>0&&q<=m)||p<=20)return{key:'low',label:'Está acabando',percent:p};return{key:'good',label:'Estoque bom',percent:p}}
+/* Aviso flutuante (visível mesmo com a página rolada) */
+let toastT;function notify(msg,type='ok'){let el=document.getElementById('stock-toast');if(!el){el=document.createElement('div');el.id='stock-toast';el.className='stock-toast';el.setAttribute('role','status');document.body.append(el)}
+  el.textContent=msg;el.classList.toggle('error',type==='error');el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true},type==='error'?8000:4500)}
+/* Diálogo único para todas as ações: onSubmit pode lançar Error (a mensagem aparece nele e o digitado é mantido). Resolve true se concluiu. */
+function openDialog({eyebrow,title,description,fields=[],submitLabel='Salvar',danger=false,onSubmit}){
+  return new Promise(resolve=>{
+    const dlg=document.createElement('dialog');dlg.className='stock-dialog';
+    dlg.innerHTML=`<form class="stock-dialog-form"><div><span class="eyebrow">${esc(eyebrow)}</span><h3>${esc(title)}</h3></div>${description?`<p class="stock-dialog-desc">${esc(description)}</p>`:''}${fields.map((f,i)=>{
+      const ctl=f.type==='select'?`<select name="${f.name}">${f.options.map(o=>`<option value="${esc(o.value)}" ${String(o.value)===String(f.value)?'selected':''}>${esc(o.label)}</option>`).join('')}</select>`
+        :`<input name="${f.name}" type="${f.type==='number'?'number':'text'}" ${f.type==='number'?`step="${f.step||'any'}" inputmode="${f.step==='1'?'numeric':'decimal'}" min="0"`:''} ${f.maxLength?`maxlength="${f.maxLength}"`:''} placeholder="${esc(f.placeholder||'')}" value="${esc(f.value??'')}" ${f.required?'required':''} autocomplete="off">`;
+      return `<label class="stock-field">${esc(f.label)}${f.suffix?`<div class="stock-field-row">${ctl}<strong class="stock-unit-tag">${esc(f.suffix)}</strong></div>`:ctl}${f.hint?`<small>${esc(f.hint)}</small>`:''}</label>`}).join('')}
+      <p class="stock-dialog-error" role="alert"></p><div class="stock-dialog-actions"><button type="button" data-cancel>Cancelar</button><button type="submit" class="${danger?'danger':'p'}">${esc(submitLabel)}</button></div></form>`;
+    document.body.append(dlg);
+    const form=dlg.querySelector('form'),err=dlg.querySelector('.stock-dialog-error'),sub=form.querySelector('[type=submit]');let done=false;
+    const finish=v=>{if(done)return;done=true;if(dlg.open)dlg.close();dlg.remove();resolve(v)};
+    form.querySelector('[data-cancel]').onclick=()=>finish(false);
+    dlg.addEventListener('cancel',e=>{e.preventDefault();finish(false)});dlg.addEventListener('click',e=>{if(e.target===dlg)finish(false)});
+    form.onsubmit=async e=>{e.preventDefault();err.textContent='';const v={};for(const f of fields)v[f.name]=form.elements[f.name].value;
+      sub.disabled=true;const t=sub.textContent;sub.textContent='Salvando…';
+      try{await onSubmit(v);finish(true)}catch(x){err.textContent=x.message||'Não foi possível concluir. Tente novamente.';sub.disabled=false;sub.textContent=t}};
+    dlg.showModal();const first=form.querySelector('input,select');if(first&&!danger){first.focus();if(first.select)first.select()}else form.querySelector('[data-cancel]').focus();
+  });
+}
+const mvApi=(item,type,body)=>api('estoque/movements',{method:'POST',body:JSON.stringify({itemId:item.id,type,...body})});
+const stepOf=item=>item.unit==='un'?'1':'any';
+const ACTIONS={
+  async buy(item){return openDialog({eyebrow:'REPOSIÇÃO DE ESTOQUE',title:'Adicionar compra',description:`${item.name} (saldo atual: ${nf(item.quantity)} ${unitLabel(item.unit)}). A quantidade informada é somada ao saldo.`,
+    fields:[{name:'quantity',label:'Quanto você comprou?',type:'number',step:stepOf(item),required:true,suffix:unitLabel(item.unit),placeholder:'Ex.: 24'},{name:'totalPaid',label:'Quanto pagou no total? (R$)',type:'number',step:'0.01',placeholder:'Ex.: 85,00',hint:'Opcional. Alimenta o valor gasto em compras.'},{name:'supplier',label:'Fornecedor',type:'text',maxLength:120,placeholder:'Opcional'}],
+    submitLabel:'Adicionar ao estoque',onSubmit:v=>mvApi(item,'entrada',{quantity:positive(v.quantity,'A quantidade comprada'),totalPaid:nonNeg(v.totalPaid,'O valor pago'),supplier:v.supplier.trim()})})},
+  async count(item){return openDialog({eyebrow:'CONFERÊNCIA DE ESTOQUE',title:'Corrigir saldo',description:`${item.name} (saldo registrado: ${nf(item.quantity)} ${unitLabel(item.unit)}). Informe quanto existe fisicamente agora. A diferença fica no histórico e não conta como compra.`,
+    fields:[{name:'quantity',label:'Quantidade que você tem agora',type:'number',step:stepOf(item),required:true,value:item.quantity,suffix:unitLabel(item.unit)}],
+    submitLabel:'Salvar quantidade',onSubmit:v=>mvApi(item,'conferencia',{quantity:nonNeg(v.quantity,'A quantidade')})})},
+  async out(item){return openDialog({eyebrow:'SAÍDA DE ESTOQUE',title:'Retirar do estoque',description:`${item.name} (saldo atual: ${nf(item.quantity)} ${unitLabel(item.unit)}). Use para consumo do bar fora dos pedidos, quebra ou vencimento.`,
+    fields:[{name:'type',label:'Motivo',type:'select',options:[{value:'saida',label:'Uso / retirada'},{value:'perda',label:'Perda / quebra / vencimento'}]},{name:'quantity',label:'Quanto saiu?',type:'number',step:stepOf(item),required:true,suffix:unitLabel(item.unit)},{name:'reason',label:'Observação',type:'text',maxLength:300,placeholder:'Opcional. Ex.: quebrou, venceu'}],
+    submitLabel:'Registrar retirada',onSubmit:v=>{const q=positive(v.quantity,'A quantidade retirada');if(q>item.quantity)throw new Error(`Você só tem ${nf(item.quantity)} ${unitLabel(item.unit)} registrados.`);return mvApi(item,v.type,{quantity:q,reason:v.reason.trim()})}})},
+  async edit(item){return openDialog({eyebrow:'DADOS DO PRODUTO',title:'Editar produto',description:'Corrija o nome, a unidade ou os limites do medidor. O saldo e os históricos são mantidos.',
+    fields:[{name:'name',label:'Nome do produto',type:'text',required:true,maxLength:100,value:item.name},
+      {name:'unit',label:'Unidade do estoque',type:'select',value:item.unit,options:item.product_id?[{value:'un',label:'Unidades'}]:[{value:'un',label:'Unidades'},{value:'kg',label:'Quilos (kg)'},{value:'g',label:'Gramas (g)'},{value:'l',label:'Litros (L)'},{value:'ml',label:'Mililitros (ml)'}],hint:item.product_id?'Produto ligado ao cardápio é controlado em unidades.':'Trocar entre kg e g (ou L e ml) converte o saldo automaticamente. Outras trocas não são permitidas.'},
+      {name:'minimum',label:'Avisar quando restar até',type:'number',step:stepOf(item),value:item.minimum||0,hint:'Na unidade do estoque. 0 usa só o medidor (20% da quantidade cheia).'},
+      {name:'capacity',label:'Quantidade cheia (100% do medidor)',type:'number',step:stepOf(item),value:Math.max(item.capacity||0,item.quantity||0),hint:'Use para reiniciar o medidor depois de uma compra grande ou de uma correção.'}],
+    submitLabel:'Salvar alterações',onSubmit:v=>{const name=v.name.trim();if(name.length<2)throw new Error('Informe o nome do produto.');return api('estoque/items/'+item.id,{method:'PATCH',body:JSON.stringify({name,unit:v.unit,minimum:nonNeg(v.minimum,'O alerta'),capacity:nonNeg(v.capacity,'A quantidade cheia')})})}})},
+  async del(item){return openDialog({eyebrow:'EXCLUIR PRODUTO',title:`Excluir “${item.name}”?`,description:'O produto sai da lista de estoque. O histórico de compras e movimentações é preservado, e o produto do cardápio com o mesmo nome (se houver) volta a vender sem controle de estoque.',submitLabel:'Excluir produto',danger:true,onSubmit:()=>api('estoque/items/'+item.id,{method:'DELETE'})})}
+};
+const DONE={buy:i=>'Compra registrada em '+i.name+'.',count:i=>'Saldo de '+i.name+' atualizado.',out:()=>'Retirada registrada.',edit:()=>'Produto atualizado.',del:i=>i.name+' foi excluído do estoque. O histórico foi mantido.'};
+async function estoque(){
+  document.title='Painel — Bar On-line do Cruzeiro';
+  const data=await api('estoque'),items=sItems=data.items,mv=data.movements;
+  const sts=items.map(stStatus),low=sts.filter(s=>s.key==='low').length,empty=sts.filter(s=>s.key==='empty').length,spent=items.reduce((n,i)=>n+i.purchase_total_cents,0);
+  stockAlert=low+empty;const tb=document.querySelector('[data-t=estoque]');if(tb)tb.textContent='Estoque'+(stockAlert?' ('+stockAlert+')':'');
+  const card=i=>{const s=stStatus(i),u=unitLabel(i.unit),site=i.product_id?(i.quantity<=0?'Esgotado':i.quantity<=3?(i.quantity===1?'Último!':`Os ${i.quantity} últimos!`):null):null;
+    return `<article class="stock-card is-${s.key}" data-item="${i.id}">
+    <div class="stock-head"><div><h4>${esc(i.name)}</h4><small>${i.product_id?'Ligado ao cardápio: '+esc(i.product_name||i.name):'Sem ligação com o cardápio (controle manual)'}</small></div><span class="stock-badge ${s.key}">${s.label}</span></div>
+    <div class="stock-qty">${nf(i.quantity)}<span>${esc(u)}</span></div>
+    <div class="stock-meter"><div class="stock-meter-track"><i class="${s.key}" style="width:${s.percent}%"></i></div><small>${Math.round(s.percent)}% da quantidade cheia</small></div>
+    <ul class="stock-facts"><li>Vendas: <strong>${i.product_id?'descontam sozinhas':'não descontam'}</strong></li>${site?`<li>No site: <strong>${site}</strong></li>`:''}<li>Gasto em compras: <strong>${brl(i.purchase_total_cents)}</strong></li>${i.minimum>0?`<li>Avisar com <strong>${nf(i.minimum)} ${esc(u)}</strong></li>`:''}</ul>
+    <div class="stock-actions"><button type="button" class="p" data-act="buy">＋ Adicionar compra</button><button type="button" data-act="count">Corrigir saldo</button><button type="button" data-act="out">Retirar / perda</button><button type="button" data-act="edit">Editar</button><button type="button" class="d" data-act="del">Excluir</button></div></article>`};
+  const list=()=>{const q=sFilter.q.trim().toLowerCase(),r=items.filter(i=>(!q||i.name.toLowerCase().includes(q))&&(sFilter.st==='all'||stStatus(i).key===sFilter.st));
+    $('#stl').innerHTML=!items.length?'<p class="stock-empty">Nenhum produto cadastrado. Use o formulário acima para começar.</p>':r.length?`<div class="stock-list">${r.map(card).join('')}</div>`:'<p class="stock-empty">Nenhum produto encontrado com esse filtro.</p>'};
+  $('#body').innerHTML=`<div class="inv">
+  <div class="inv-intro"><span class="eyebrow">CONTROLE SIMPLES</span><h2>Estoque</h2><p class="muted">Cadastre cada produto, informe quanto tem e acompanhe o saldo pelo medidor. Os pedidos descontam sozinhos.</p></div>
+  <div class="stats"><div class="stat"><span>Produtos cadastrados</span><strong>${items.length}</strong></div><div class="stat"><span>Estoque acabando</span><strong>${low}</strong></div><div class="stat"><span>Esgotados</span><strong>${empty}</strong></div><div class="stat"><span>Gasto em compras</span><strong>${brl(spent)}</strong></div></div>
+  <div class="inv-card"><h3>＋ Cadastrar produto</h3><form id="sform" class="inv-form">
+    <label>Nome do produto<input id="sn" list="sn-l" required minlength="2" placeholder="Ex.: Heineken Latão" autocomplete="off"><datalist id="sn-l">${data.products.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist></label>
+    <label>Quantidade que tem<input id="sq0" type="number" min="0" step="any" required placeholder="Ex.: 24"></label>
+    <label>Unidade do estoque<select id="su"><option value="un">Unidades</option><option value="kg">Quilos (kg)</option><option value="g">Gramas (g)</option><option value="l">Litros (L)</option><option value="ml">Mililitros (ml)</option></select></label>
+    <label>Quanto gastou na compra? (R$)<input id="sp" type="number" min="0" step="0.01" placeholder="Ex.: 85,00"></label>
+    <label>Alertar quando restar<input id="sm" type="number" min="0" step="any" placeholder="Opcional, na unidade do estoque"></label>
+    <div class="full"><button class="p" id="sadd">Cadastrar produto</button><button type="button" id="sbulk">Contar vários produtos de uma vez</button></div></form>
+    <p class="muted" style="margin:12px 0 0">Se o nome for igual ao de um produto do cardápio (ex.: Heineken Latão), o estoque fica <strong>ligado</strong> a ele: cada pedido desconta as unidades na hora, o cancelamento devolve, o site avisa “Os 3 últimos!” e mostra “Esgotado” quando zera. Produto do cardápio sem item aqui vende sem limite. Itens que não são vendidos (gelo, copos…) ficam só com controle manual.</p></div>
+  <div id="sbk"></div>
+  <div class="inv-card"><h3>O que tenho no estoque?</h3><p class="muted">O medidor mostra quanto resta da quantidade cheia. Amarelo: está acabando. Vermelho: esgotado. Use “Editar” para ajustar o alerta e reiniciar o medidor.</p>
+    <div class="inv-bar"><input id="sf" type="search" placeholder="Buscar produto…" aria-label="Buscar produto no estoque" value="${esc(sFilter.q)}"><select id="ss" aria-label="Filtrar por situação">${[['all','Todos'],['low','Acabando'],['empty','Esgotados'],['good','Estoque bom']].map(o=>`<option value="${o[0]}" ${o[0]===sFilter.st?'selected':''}>${o[1]}</option>`).join('')}</select></div>
+    <div id="stl"></div></div>
+  <div class="inv-card"><h3>Movimentações recentes</h3>${mv.length?`<div class="tw"><table><thead><tr><th>Data</th><th>Produto</th><th>Tipo</th><th>Quantidade</th><th>Detalhe</th></tr></thead><tbody>${mv.slice(0,40).map(m=>`<tr><td>${new Date(m.created_at).toLocaleString('pt-BR')}</td><td>${esc(m.item_name)}</td><td>${MV[m.kind]||m.kind}</td><td>${MS[m.kind]||''}${nf(m.quantity)} ${esc(unitLabel(m.item_unit))}</td><td>${esc(m.reason||'—')}${m.kind==='entrada'&&m.total_cents?' · '+brl(m.total_cents):''}${m.supplier?' · '+esc(m.supplier):''}</td></tr>`).join('')}</tbody></table></div>`:'<p class="stock-empty">As movimentações aparecerão aqui.</p>'}</div></div>`;
+  list();
+  $('#sf').oninput=e=>{sFilter.q=e.target.value;list()};$('#ss').onchange=e=>{sFilter.st=e.target.value;list()};
+  $('#su').onchange=()=>{$('#sq0').step=$('#su').value==='un'?'1':'any'};
+  $('#sform').onsubmit=async e=>{e.preventDefault();const b=$('#sadd');b.disabled=true;
+    try{const r=await api('estoque/items',{method:'POST',body:JSON.stringify({name:$('#sn').value.trim(),unit:$('#su').value,quantity:$('#sq0').value,purchaseTotal:$('#sp').value,minimumQuantity:$('#sm').value})});
+      notify(r.linked?'Produto cadastrado e ligado ao cardápio: cada pedido desconta sozinho.':'Produto cadastrado. Sem produto do cardápio com esse nome, o controle é manual.');await estoque()}
+    catch(x){notify(x.message,'error');b.disabled=false}};
+  $('#sbulk').onclick=()=>{
+    if($('#sbk').innerHTML){$('#sbk').innerHTML='';return}
+    if(!data.products.length){notify('Todos os produtos do cardápio já têm item de estoque.','error');return}
+    const cats=[...new Set(data.products.map(p=>p.category))];
+    $('#sbk').innerHTML=`<div class="inv-card"><h3>Contagem de vários produtos</h3><p class="muted">Digite quantas unidades você tem de cada produto. <strong>Deixe em branco</strong> os que não quer controlar: eles continuam vendendo sem limite. Atenção: produto com quantidade <strong>0</strong> aparece como “Esgotado” no site.</p><div class="cnt">${cats.map(c=>`<h4>${esc(c)}</h4>`+data.products.filter(p=>p.category===c).map(p=>`<div class="row"><span>${esc(p.name)}</span><input data-bp="${p.id}" type="number" min="0" step="1" inputmode="numeric" placeholder="—" aria-label="Quantidade de ${esc(p.name)}"></div>`).join('')).join('')}</div><div class="stock-dialog-actions" style="justify-content:flex-start"><button class="p" id="bsave">Salvar contagem</button><button id="bcancel">Fechar</button></div></div>`;
+    $('#bcancel').onclick=()=>{$('#sbk').innerHTML=''};
+    $('#bsave').onclick=async()=>{const rows=[...document.querySelectorAll('[data-bp]')].filter(i=>i.value.trim()!=='').map(i=>({productId:+i.dataset.bp,quantity:i.value}));
+      try{const r=await api('estoque/bulk',{method:'POST',body:JSON.stringify({rows})});notify(r.created+' produto(s) cadastrado(s) no estoque.');await estoque()}catch(x){notify(x.message,'error')}};
+    $('#sbk').scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  $('#stl').onclick=async e=>{const btn=e.target.closest('[data-act]');if(!btn)return;const item=sItems.find(i=>String(i.id)===btn.closest('[data-item]').dataset.item),act=ACTIONS[btn.dataset.act];
+    if(!item||!act){notify('Produto não encontrado. Atualize a página.','error');return}
+    btn.disabled=true;try{if(await act(item)){notify(DONE[btn.dataset.act](item));await estoque()}}catch(x){notify(x.message||'Não foi possível concluir a ação.','error')}finally{btn.disabled=false}};
+}
+
+/* ---------- Backup ---------- */
+const BK_TABLES={products:'Produtos',brands:'Marcas',zones:'Bairros',orders:'Pedidos',customers:'Clientes',customer_favorites:'Favoritos dos clientes',coupons:'Cupons',inventory_items:'Itens do estoque',inventory_movements:'Movimentos do estoque',cash_sessions:'Caixas (aberturas)',cash_movements:'Movimentos do caixa',settings:'Configurações'};
+const BK_KIND={auto:'Automática',manual:'Manual','antes-de-restaurar':'Antes de restaurar'};
+const bkName=t=>BK_TABLES[t]||t;
+const bkSize=b=>b>=1048576?(b/1048576).toFixed(1).replace('.',',')+' MB':Math.max(1,Math.round(b/1024))+' KB';
+const bkWhen=d=>new Date(d).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+function bkExpired(){token='';sessionStorage.removeItem('bdc_admin');login()}
+async function bkSave(path,btn){
+  const old=btn.textContent;btn.disabled=true;btn.textContent='Preparando…';
+  try{
+    const r=await fetch('/api/admin/backup/'+path,{headers:{Authorization:'Bearer '+token}});
+    if(r.status===401){bkExpired();return}
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'Não foi possível gerar o arquivo.')}
+    const name=(/filename="([^"]+)"/.exec(r.headers.get('Content-Disposition')||'')||[])[1]||'backup.json';
+    const url=URL.createObjectURL(await r.blob()),a=document.createElement('a');
+    a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+    notify('Arquivo baixado: '+name);
+  }catch(x){notify(x.message,'error')}finally{btn.disabled=false;btn.textContent=old}
+}
+async function bkPost(path,body,word){
+  const r=await fetch('/api/admin/backup/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token,'X-Confirm':word},body});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401){bkExpired();throw new Error('Sessão expirada. Entre novamente.')}
+  if(!r.ok)throw new Error(j.error||'Não foi possível restaurar o backup.');
+  return j;
+}
+async function bkRestore(description,send){
+  let out=null;
+  const ok=await openDialog({eyebrow:'RESTAURAR BACKUP',title:'Restaurar este backup?',description,
+    fields:[{name:'c',label:'Para confirmar, digite RESTAURAR',type:'text',required:true,placeholder:'RESTAURAR'}],submitLabel:'Restaurar agora',danger:true,
+    onSubmit:async v=>{if(v.c.trim().toUpperCase()!=='RESTAURAR')throw new Error('Digite a palavra RESTAURAR para confirmar.');out=await send('RESTAURAR')}});
+  if(ok&&out){notify(`Backup restaurado: ${out.rows} registros em ${out.tables} tabelas. O que existia antes ficou guardado em uma cópia de segurança.`);shell()}
+}
+const BK_WARN='Isto SUBSTITUI todos os dados atuais (pedidos, produtos, clientes, estoque, caixa e configurações) pelos do backup. Antes, o sistema guarda uma cópia do que existe agora, mas o ideal é restaurar sem pedidos em andamento.';
+async function backup(){
+  const s=await api('backup/summary');
+  const snaps=s.snapshots,total=s.tables.reduce((n,t)=>n+t.rows,0);
+  $('#body').innerHTML=`<div class="box"><b>Baixar backup completo</b>
+    <p class="muted">Um arquivo .json com tudo: produtos, marcas, bairros, pedidos, clientes, cupons, estoque, caixa e configurações. Guarde no seu computador ou no Google Drive.</p>
+    <div class="bk-actions"><button class="p" id="bk-dl">⬇ Baixar backup</button><label><input type="checkbox" id="bk-img" checked> Incluir fotos e logos enviadas pelo painel</label></div>
+    <p class="bk-note">Sem as fotos o arquivo fica bem menor, mas ao restaurar as fotos enviadas pelo painel não voltam. O arquivo tem dados dos clientes (nome, telefone, endereço): não compartilhe.</p>
+    <div class="bk-actions"><button id="bk-csv">⬇ Pedidos em planilha (CSV)</button><span class="muted">Abre no Excel e no Google Planilhas. Serve para consulta, não para restaurar.</span></div></div>
+
+    <div class="box"><b>Cópias guardadas no sistema</b>
+    <p class="muted">O sistema faz uma cópia automática por dia (quando há movimento) e guarda as ${s.keep.auto} últimas. Você também pode criar uma agora, por exemplo antes de mexer em muitos produtos.</p>
+    <div class="bk-actions"><button class="p" id="bk-snap">＋ Criar cópia agora</button><span class="muted">${snaps.length} cópia(s) · ${bkSize(s.snapshots_bytes)} · banco todo: ${bkSize(s.db_bytes)}</span></div>
+    ${snaps.length?`<div class="tw"><table><thead><tr><th>Data</th><th>Tipo</th><th>Tamanho</th><th>Registros</th><th></th></tr></thead><tbody>${snaps.map(x=>`<tr data-id="${x.id}" data-when="${esc(bkWhen(x.created_at))}"><td>${bkWhen(x.created_at)}${x.note&&x.kind==='manual'&&x.note!=='Cópia manual'?`<div class="muted">${esc(x.note)}</div>`:''}</td><td>${esc(BK_KIND[x.kind]||x.kind)}</td><td>${bkSize(x.size_bytes)}</td><td>${x.rows_count}</td>
+      <td><div class="bk-row-actions"><button data-a="dl">Baixar</button><button data-a="rs">Restaurar</button><button class="d" data-a="del">Excluir</button></div></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted" style="margin-top:12px">Ainda não há cópias. A primeira automática aparece em breve, ou crie uma agora.</p>'}
+    <p class="bk-note">Estas cópias ficam no mesmo banco de dados do site. Protegem contra erros (apagou um produto, mudou preços sem querer), mas não contra a perda do banco inteiro: por isso baixe o arquivo de vez em quando.</p></div>
+
+    <div class="box"><b>Restaurar de um arquivo</b>
+    <p class="muted">Escolha um arquivo de backup baixado aqui no painel.</p>
+    <input type="file" id="bk-file" class="bk-file" accept=".json,application/json">
+    <div class="bk-prev" id="bk-prev" hidden></div>
+    <div class="bk-actions"><button class="d" id="bk-go" hidden>Restaurar este arquivo…</button></div></div>
+
+    <div class="box"><b>O que entra no backup</b>
+    <p class="muted">${total} registros hoje.</p>
+    ${s.tables.map(t=>`<div class="row"><span>${esc(bkName(t.name))}</span><span>${t.rows}</span></div>`).join('')}</div>`;
+
+  $('#bk-dl').onclick=e=>bkSave('download?images='+($('#bk-img').checked?'1':'0'),e.currentTarget);
+  $('#bk-csv').onclick=e=>bkSave('orders.csv',e.currentTarget);
+  $('#bk-snap').onclick=async e=>{
+    const b=e.currentTarget;b.disabled=true;b.textContent='Criando…';
+    try{await api('backup/snapshots',{method:'POST',body:JSON.stringify({note:'Cópia manual'})});notify('Cópia criada.');await backup()}
+    catch(x){notify(x.message,'error');b.disabled=false;b.textContent='＋ Criar cópia agora'}
+  };
+  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=async()=>{
+    const tr=b.closest('tr'),id=tr.dataset.id,when=tr.dataset.when;
+    if(b.dataset.a==='dl')return bkSave('snapshots/'+id+'/download',b);
+    if(b.dataset.a==='rs')return bkRestore(`Cópia de ${when}. ${BK_WARN}`,w=>bkPost('snapshots/'+id+'/restore','{}',w));
+    if(await openDialog({eyebrow:'EXCLUIR CÓPIA',title:'Excluir esta cópia?',description:`A cópia de ${when} será apagada do sistema. Isso não afeta os dados atuais do site.`,submitLabel:'Excluir cópia',danger:true,
+      onSubmit:()=>api('backup/snapshots/'+id,{method:'DELETE'})})){notify('Cópia excluída.');await backup()}
+  });
+  let fileText=null,fileMeta=null;
+  $('#bk-file').onchange=async e=>{
+    const f=e.target.files[0],prev=$('#bk-prev'),go=$('#bk-go');fileText=fileMeta=null;go.hidden=true;
+    if(!f){prev.hidden=true;return}
+    prev.hidden=false;prev.textContent='Lendo o arquivo…';
+    try{
+      const text=await f.text(),j=JSON.parse(text);
+      if(j.app!=='bar-online-cruzeiro'||!j.tables||typeof j.tables!=='object')throw new Error('Este arquivo não é um backup do Bar On-line do Cruzeiro.');
+      fileText=text;fileMeta=j;
+      const names=Object.keys(j.tables).filter(t=>Array.isArray(j.tables[t]));
+      prev.innerHTML=`<b>Backup de ${esc(bkWhen(j.created_at))}</b> · ${esc(bkSize(f.size))}<br>${names.map(t=>`${esc(bkName(t))}: ${j.tables[t].length}`).join(' · ')}${j.images===false?'<br><span class="over">Este backup foi feito sem fotos: as fotos enviadas pelo painel não voltam.</span>':''}`;
+      go.hidden=false;
+    }catch(x){prev.innerHTML=`<span class="short">${esc(x instanceof SyntaxError?'Não consegui ler o arquivo. Use o .json baixado pelo próprio painel.':x.message)}</span>`}
+  };
+  $('#bk-go').onclick=()=>{if(fileText)bkRestore(`Backup de ${bkWhen(fileMeta.created_at)}. ${BK_WARN}`,w=>bkPost('restore',fileText,w))};
+}
+
+token?shell():login();
+</script>
+</body>
+</html>

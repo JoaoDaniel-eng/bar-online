@@ -5,7 +5,7 @@ Foram vinculadas fotografias reais de embalagens para 20 dos 84 produtos cadastr
 ## Como funciona
 
 - O backend usa primeiro a imagem cadastrada no painel administrativo.
-- Depois procura um arquivo local em `src/public/produtos/`.
+- Depois procura um arquivo local em `public/produtos/`.
 - Por último, consulta o mapeamento de imagens externas em `src/fotos-catalogo.js`.
 - As imagens externas são exibidas diretamente do CDN da PMG Atacadista; portanto, dependem de conexão com a internet e de o fornecedor manter os arquivos públicos disponíveis.
 

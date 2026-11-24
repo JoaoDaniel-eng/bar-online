@@ -1,4 +1,4 @@
-FOTOS DOS PRODUTOS (pasta src/public/produtos) — jpg, png ou webp
+FOTOS DOS PRODUTOS (pasta public/produtos) — jpg, png ou webp
 
 [web] brahma.jpg   (Brahma)
 [web] itaipava.jpg   (Itaipava)
@@ -85,7 +85,7 @@ FOTOS DOS PRODUTOS (pasta src/public/produtos) — jpg, png ou webp
 [ ] kitkat.jpg   (KitKat)
 [ ] choquito.jpg   (Choquito)
 
-LOGOS DAS MARCAS (pasta src/public/brands) — de preferência png com fundo transparente
+LOGOS DAS MARCAS (pasta public/brands) — de preferência png com fundo transparente
 
 [ ] brahma.png   (Brahma)
 [ ] itaipava.png   (Itaipava)

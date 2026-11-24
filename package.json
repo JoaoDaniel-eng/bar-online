@@ -4,9 +4,16 @@
   "private": true,
   "description": "Delivery de bebidas (PWA) - Bar On-line do Cruzeiro",
   "main": "src/server.js",
-  "scripts": { "start": "node src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
     "catalogo": "node src/seed-catalogo.js",
-    "fotos": "node src/fotos.js" },
-  "engines": { "node": ">=18" },
-  "dependencies": { "express": "^4.19.2", "pg": "^8.12.0" }
+    "fotos": "node src/fotos.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
 }

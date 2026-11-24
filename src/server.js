@@ -24,6 +24,7 @@ const backup = require('./backup');
 const { DATABASE_URL, ADMIN_PASSWORD, WHATSAPP_NUMBER = '', STORE_NAME = 'Bar On-line do Cruzeiro' } = process.env;
 const SECRET = process.env.SESSION_SECRET || ADMIN_PASSWORD || 'dev-secret';
 const PORT = process.env.PORT || 3000;
+const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
 if (!DATABASE_URL) { console.error('Faltou DATABASE_URL: o .env foi lido, mas essa linha não está nele (ou está vazia). Confira o nome da variável.'); process.exit(1); }
 if (!ADMIN_PASSWORD) { console.error('Faltou ADMIN_PASSWORD. Veja .env.example'); process.exit(1); }
@@ -107,12 +108,12 @@ async function initDb() {
   }
 }
 
-/* Fotos automáticas: arquivo com o nome do produto/marca em src/public/produtos e src/public/brands */
+/* Fotos automáticas: arquivo com o nome do produto/marca em public/produtos e public/brands */
 const slug = x => String(x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 function scan(dir) {
   const m = {};
   try {
-    fs.readdirSync(path.join(__dirname, 'public', dir)).forEach(f => {
+    fs.readdirSync(path.join(PUBLIC_DIR, dir)).forEach(f => {
       const e = path.extname(f).toLowerCase();
       if (['.jpg', '.jpeg', '.png', '.webp', '.svg'].includes(e)) m[slug(path.basename(f, path.extname(f)))] = '/' + dir + '/' + encodeURIComponent(f);
     });
@@ -454,15 +455,15 @@ const BUILD = (() => {
   const walk = d => { for (const f of fs.readdirSync(d).sort()) { const p = path.join(d, f);
     if (fs.statSync(p).isDirectory()) { if (!['produtos', 'brands'].includes(f)) walk(p); }
     else if (/\.(html|js|css|webmanifest)$/.test(f)) h.update(f).update(fs.readFileSync(p)); } };
-  try { walk(path.join(__dirname, 'public')); } catch (e) {}
+  try { walk(PUBLIC_DIR); } catch (e) {}
   return h.digest('hex').slice(0, 10);
 })();
-app.get('/sw.js', (req, res) => fs.readFile(path.join(__dirname, 'public', 'sw.js'), 'utf8', (e, t) => {
+app.get('/sw.js', (req, res) => fs.readFile(path.join(PUBLIC_DIR, 'sw.js'), 'utf8', (e, t) => {
   if (e) return res.status(404).end();
   res.set({ 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache' }).send(t.replace(/__BUILD__/g, BUILD));
 }));
 
-app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], setHeaders: (res, f) => { if (/\.(png|jpe?g|webp|svg)$/i.test(f)) res.set('Cache-Control', 'public, max-age=86400'); } }));
+app.use(express.static(PUBLIC_DIR, { extensions: ['html'], setHeaders: (res, f) => { if (/\.(png|jpe?g|webp|svg)$/i.test(f)) res.set('Cache-Control', 'public, max-age=86400'); } }));
 app.get('/healthz', (req, res) => res.send('ok'));
 
 initDb().then(() => { backup.startAuto(pool); return app.listen(PORT, () => console.log('Bar On-line do Cruzeiro rodando na porta ' + PORT)); })
