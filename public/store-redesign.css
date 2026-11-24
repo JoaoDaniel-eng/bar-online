@@ -459,3 +459,22 @@ html[data-theme="dark"] #foot { border-color:rgba(176,197,240,.16); }
   html[data-theme="dark"] .shop-layout .chip { background:#141f37;border-color:rgba(176,197,240,.14); }
   html[data-theme="dark"] .shop-layout .chip.on { background:#2d6bff;border-color:#2d6bff; }
 }
+
+
+/* Fit completo das embalagens: moldura mais alta, imagem inteira e centralizada. */
+main#menu .row { grid-template-rows:240px auto auto; }
+main#menu .tile { display:grid;place-items:center;height:240px;overflow:hidden; }
+main#menu .tile img { display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center center;padding:16px 24px 22px;background:transparent;mix-blend-mode:multiply; }
+@media (max-width:980px) {
+  main#menu .row { grid-template-rows:220px auto auto; }
+  main#menu .tile { height:220px; }
+}
+@media (max-width:720px) {
+  main#menu .row { grid-template-rows:188px auto auto; }
+  main#menu .tile { height:188px; }
+  main#menu .tile img { padding:12px 18px 18px; }
+}
+@media (max-width:390px) {
+  main#menu .row { grid-template-rows:202px auto auto; }
+  main#menu .tile { height:202px; }
+}

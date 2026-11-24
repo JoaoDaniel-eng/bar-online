@@ -1,6 +1,6 @@
 # Rascunho v2 — Bar On-line do Cruzeiro
 
-A primeira passagem preservou demais a composição original. Esta revisão reorganiza de forma visível a experiência: navegação de marca em marinho, hero tipográfico editorial em duas colunas com o asset real do projeto, busca ampla acoplada ao hero e nova área de compra com navegação de categorias lateral no desktop e faixa horizontal aderente no mobile. Os cards usam espaço maior para imagens reais cadastradas e deixam nome, descrição, valor e ação de adicionar em hierarquia própria.
+A primeira passagem preservou demais a composição original. Esta revisão reorganiza de forma visível a experiência: navegação de marca em marinho, hero tipográfico editorial em duas colunas com o asset real do projeto, busca ampla acoplada ao hero e nova área de compra com navegação de categorias lateral no desktop e faixa horizontal aderente no mobile. Os cards usam espaço maior para imagens reais cadastradas e deixam nome, descrição, valor e ação de adicionar em hierarquia própria. As molduras de produto foram ampliadas e usam enquadramento `contain` centralizado para acomodar embalagens altas sem cortar a imagem.
 
 ## Loja
 
