@@ -2,7 +2,7 @@
 
 Esse é o meu primeiro projeto de verdade: um site de delivery de bebidas pro bar do Cruzeiro, aqui em Teresópolis. O cliente abre no celular, escolhe o que quer, monta o pedido e manda. Do outro lado tem um painel pra gente acompanhar o que entrou.
 
-Fui aprendendo no caminho e usei IA pra me ajudar em várias partes (principalmente layout, alguns trechos do servidor e o backup). Eu revisei e testei o que deu, mas ainda tem coisa que quero entender melhor.
+Fui aprendendo no caminho e usei IA pra me ajudar em algumas partes (principalmente layout, alguns trechos do servidor e o backup).
 
 Feito com Node.js, Express e PostgreSQL (banco no Neon, site no Render). Também dá pra instalar como app no celular (PWA).
 
