@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--blue:#2d6bff;--blue-soft:#7ea6ff;--amber:#ffb020;--panel:#07102b;--panel2:#0b1638;--line:rgba(45,107,255,.38);--muted:#9aa6c4;--foam:#f7f1e3;--bg:#02050f}
 *{box-sizing:border-box;margin:0}
@@ -115,6 +115,7 @@ button.danger{background:#a72e43;border:0;color:#fff;font-weight:600}
 .bk-file{padding:10px;min-height:48px}
 @media print{body *{display:none}}
 </style>
+<link rel="stylesheet" href="/admin-redesign.css">
 </head>
 <body>
 <header class="site-top"><img src="/icons/logo.jpg" alt=""><b>Bar On-line <span>do Cruzeiro</span></b><a class="store-link" id="to-store" href="/">← Voltar para a loja</a></header>
@@ -132,7 +133,7 @@ async function api(path,opt={}){
 }
 function login(){
   clearInterval(timer);clearInterval(wtimer);wtimer=null;
-  $('#app').innerHTML=`<div class="login-box"><span class="eyebrow">GESTÃO DO BAR</span><h2>Entrar no painel</h2><label for="pw" class="muted">Senha do painel</label><input id="pw" type="password" autocomplete="current-password"><div class="err" id="e"></div><button class="p" id="go" style="width:100%;min-height:48px">Entrar</button></div>`;
+  $('#app').innerHTML=`<div class="login-box"><section class="login-brand"><img src="/icons/logo.jpg" alt="Bar On-line do Cruzeiro"><span>GESTÃO DO BAR</span><h2>PAINEL<br>CRUZEIRO</h2><p>Pedidos, catálogo e operação em um só lugar.</p></section><section class="login-form"><span class="eyebrow">ACESSO RESTRITO</span><h2>Entrar no painel</h2><label for="pw" class="muted">Senha do painel</label><input id="pw" type="password" autocomplete="current-password"><div class="err" id="e"></div><button class="p" id="go" style="width:100%;min-height:48px">Entrar</button></section></div>`;
   const go=async()=>{try{const j=await api('login',{method:'POST',body:JSON.stringify({password:$('#pw').value})});token=j.token;sessionStorage.setItem('bdc_admin',token);shell()}catch(e){$('#e').textContent=e.message}};
   $('#go').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};
 }

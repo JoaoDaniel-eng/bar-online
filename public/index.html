@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;1,800&family=Barlow:wght@400;500;600&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<script>try{var _t=JSON.parse(localStorage.getItem("bdc_theme"));document.documentElement.dataset.theme=_t==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<script>try{var _t=JSON.parse(localStorage.getItem("bdc_theme"));document.documentElement.dataset.theme=_t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <style>
 :root{--bg:#000;--panel:#07102b;--blue:#2d6bff;--blue-soft:#7ea6ff;--amber:#ffb020;--amber-text:#ffb020;--foam:#f7f1e3;--muted:#9aa6c4;--line:rgba(45,107,255,.35);--danger:#ff6b6b;--danger-t:var(--danger-t);--ok:#4cd68a;--rose:var(--rose);--violet:var(--violet);--inp:#000;--navbg:rgba(0,0,0,.88);--chipsbg:rgba(0,0,0,.94);--scrim:rgba(0,0,0,.7);--drawer:#050b1f;--rowbg:rgba(7,16,43,.55);--ordbg:rgba(0,0,0,.25);--hero-top:#030a22;--ph:#5d6a8c;color-scheme:dark}
 html[data-theme=light]{--bg:#f3f6fd;--panel:#ffffff;--blue-soft:#1e50d8;--amber-text:#b45f00;--foam:#0c1433;--muted:#58637f;--line:rgba(45,107,255,.28);--danger:#d62f2f;--danger-t:#d62f2f;--ok:#12804a;--rose:#c9304a;--violet:#7a3fd1;--inp:#f3f6fd;--navbg:rgba(255,255,255,.9);--chipsbg:rgba(243,246,253,.95);--scrim:rgba(8,14,40,.5);--drawer:#ffffff;--rowbg:#ffffff;--ordbg:rgba(45,107,255,.06);--hero-top:#dce7ff;--ph:#8a94b0;color-scheme:light}
@@ -235,6 +235,7 @@ html[data-theme=light] .bgart{opacity:.24}
 .upd .btn{min-height:42px;padding:0 18px;white-space:nowrap;flex:none}
 body:has(#bar:not([hidden])) .upd{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
 </style>
+<link rel="stylesheet" href="/store-redesign.css">
 </head>
 <body>
 <div class="bgart" aria-hidden="true"></div>
@@ -270,11 +271,13 @@ body:has(#bar:not([hidden])) .upd{bottom:calc(88px + env(safe-area-inset-bottom,
     </div>
     <div class="hero-art"><img src="/icons/hero-bebida.webp" alt="Garrafa de cerveja gelada com limão e respingos" width="586" height="1000" fetchpriority="high"></div>
   </div>
+  <div class="sw"><button class="sbtn" id="openSearch" aria-label="Buscar bebidas e marcas"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Busque por produtos ou marcas</button></div>
 </section>
 
-<div class="sw"><button class="sbtn" id="openSearch" aria-label="Buscar bebidas e marcas"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Busque por produtos ou marcas</button></div>
+<div class="shop-layout">
 <nav class="chips" id="chips" aria-label="Categorias"></nav>
 <main id="menu"><div class="empty">Carregando cardápio…</div></main>
+</div>
 <footer id="foot">Beba com moderação. Venda proibida para menores de 18 anos.<br><a class="admin-access" href="/admin.html" aria-label="Acessar painel administrativo da loja">Painel administrativo</a></footer>
 
 <div class="search" id="search" role="dialog" aria-label="Buscar itens">

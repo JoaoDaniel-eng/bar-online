@@ -71,4 +71,4 @@ Cuidado: isso **apaga e recria** produtos e marcas. Faz backup antes se já tive
 
 - fotos dos outros produtos e os logos
 - testar melhor no iPhone
-- mexer no visual, que ainda tá meio parecido com tudo quanto é site de bar
+- avaliar a nova direção visual V2 e conferir a experiência em dispositivos móveis
