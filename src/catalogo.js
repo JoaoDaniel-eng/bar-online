@@ -1,7 +1,7 @@
 
 const C = {
   cerv: 'Cervejas', dest: 'Destilados', cach: 'Cachaças e Licores', vin: 'Vinhos e Festa',
-  ene: 'Energéticos', drk: 'Drinks Prontos', ref: 'Refrigerantes e Água', conv: 'Conveniência'
+  ene: 'Energéticos', drk: 'Drinks Prontos', ref: 'Refrigerantes e Água', conv: 'Conveniência', cig: 'Cigarros'
 };
 const L = [
   [C.cerv, 'Brahma', 8, 'Brahma'], [C.cerv, 'Itaipava', 8, 'Itaipava'], [C.cerv, 'Império', 8, 'Império'],
@@ -37,7 +37,12 @@ const L = [
   [C.conv, 'Amendoim', 3], [C.conv, 'Ceda (pacote)', 7], [C.conv, 'Ceda (unidade)', 2],
   [C.conv, 'Bic Grande', 8], [C.conv, 'Bic Pequeno', 5],
   [C.conv, 'Halls Preta', 5], [C.conv, 'Halls Uva', 5], [C.conv, 'Halls Verde', 5], [C.conv, 'Halls Menta', 5], [C.conv, 'Halls Melancia', 5],
-  [C.conv, 'Trident', 5], [C.conv, 'KitKat', 5], [C.conv, 'Choquito', 5]
+  [C.conv, 'Trident', 5], [C.conv, 'KitKat', 5], [C.conv, 'Choquito', 5],
+
+  [C.cig, 'Marlboro Branco', 15], [C.cig, 'Marlboro Vermelho', 15], [C.cig, 'Marlboro Melancia', 23],
+  [C.cig, 'Black', 35], [C.cig, 'Paiol', 35],
+  [C.cig, 'Lucky Strike', 17], [C.cig, 'Lucky Strike Double Ice', 23],
+  [C.cig, 'Rothmans Global', 15], [C.cig, 'Rothmans', 16], [C.cig, 'Dunhill', 25]
 ];
 
 const PRODUCTS = L.map(p => [p[0], p[1], Math.round(p[2] * 100), '', p[3] || '']);

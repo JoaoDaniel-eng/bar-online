@@ -53,7 +53,7 @@ Dá pra mandar a foto pelo painel (fica salva no banco) ou jogar o arquivo em `p
 
 Rodando `npm run fotos` ele mostra quantos produtos já têm foto e gera um `LISTA-DE-FOTOS.txt` com os nomes que faltam.
 
-Por enquanto só 20 dos 84 produtos têm foto. As que tenho são do catálogo da PMG Atacadista e carregam direto do site deles, então se saírem do ar a imagem some. Os logos das marcas ainda não coloquei.
+Por enquanto só 20 dos 94 produtos têm foto. As que tenho são do catálogo da PMG Atacadista e carregam direto do site deles, então se saírem do ar a imagem some. Os logos das marcas ainda não coloquei.
 
 ## Mudar o catálogo
 
